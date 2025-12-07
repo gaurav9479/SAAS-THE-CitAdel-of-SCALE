@@ -172,7 +172,7 @@ const assignEngineer = asynchandler(async (req, res) => {
 
     await issue.save();
 
-    // Update engineer stats
+
     await Engineer.findByIdAndUpdate(engineerId, { $inc: { currentAssignments: 1 } });
 
     return res.status(200).json(
@@ -189,7 +189,7 @@ const updateIssue = asynchandler(async (req, res) => {
         throw new ApiError(404, "Issue not found");
     }
 
-    // Only allow update if user created it or is admin
+
     if (issue.createdBy.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
         throw new ApiError(403, "Not authorized to update this issue");
     }
@@ -213,7 +213,7 @@ const deleteIssue = asynchandler(async (req, res) => {
         throw new ApiError(404, "Issue not found");
     }
 
-    // Only allow delete if user created it or is admin
+
     if (issue.createdBy.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
         throw new ApiError(403, "Not authorized to delete this issue");
     }

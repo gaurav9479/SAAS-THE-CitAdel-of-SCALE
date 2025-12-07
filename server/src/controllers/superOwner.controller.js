@@ -86,9 +86,6 @@ const loginSuperOwner = asynchandler(async (req, res) => {
         }, "Login successful")
     );
 });
-
-
-
 // const createCompany = asynchandler(async (req, res) => {
 //     const {
 //         name,
