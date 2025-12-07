@@ -4,8 +4,8 @@ import { Router } from "express";
 
 const router = Router();
 
-router.post("/register", registerUser);
-router.post("/login", loginUser);
+router.post("/user-register", registerUser);
+router.post("/user-login", loginUser);
 
 
 router.use(verifyJWT);

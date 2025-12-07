@@ -86,104 +86,104 @@ const loginSuperOwner = asynchandler(async (req, res) => {
         }, "Login successful")
     );
 });
-// const createCompany = asynchandler(async (req, res) => {
-//     const {
-//         name,
-//         email,
-//         phone,
-//         address,
-//         domain,
-//         industry,
-//         adminName,
-//         adminEmail,
-//         adminPhone,
-//         adminPassword
-//     } = req.body;
+const createCompany = asynchandler(async (req, res) => {
+    const {
+        name,
+        email,
+        phone,
+        address,
+        domain,
+        industry,
+        adminName,
+        adminEmail,
+        adminPhone,
+        adminPassword
+    } = req.body;
 
-//     if (!name || !email || !address || !domain) {
-//         throw new ApiError(400, "Company name, email, address, and domain are required");
-//     }
+    if (!name || !email || !address || !domain) {
+        throw new ApiError(400, "Company name, email, address, and domain are required");
+    }
 
-//     if (!adminName || !adminEmail || !adminPassword) {
-//         throw new ApiError(400, "Admin name, email, and password are required");
-//     }
-
-
-//     const existingCompany = await Company.findOne({
-//         $or: [{ email: email.toLowerCase() }, { domain: domain.toLowerCase() }]
-//     });
-//     if (existingCompany) {
-//         throw new ApiError(409, "Company with this email or domain already exists");
-//     }
+    if (!adminName || !adminEmail || !adminPassword) {
+        throw new ApiError(400, "Admin name, email, and password are required");
+    }
 
 
-//     const existingAdmin = await Admin.findOne({ email: adminEmail.toLowerCase() });
-//     if (existingAdmin) {
-//         throw new ApiError(409, "Admin with this email already exists");
-//     }
+    const existingCompany = await Company.findOne({
+        $or: [{ email: email.toLowerCase() }, { domain: domain.toLowerCase() }]
+    });
+    if (existingCompany) {
+        throw new ApiError(409, "Company with this email or domain already exists");
+    }
 
 
-//     const freePlan = await SubscriptionPlan.findOne({ slug: "free", isActive: true });
-//     if (!freePlan) {
-//         throw new ApiError(500, "Default subscription plan not found. Run the seeder first.");
-//     }
+    const existingAdmin = await Admin.findOne({ email: adminEmail.toLowerCase() });
+    if (existingAdmin) {
+        throw new ApiError(409, "Admin with this email already exists");
+    }
 
 
-//     const trialEndsAt = new Date();
-//     trialEndsAt.setDate(trialEndsAt.getDate() + 14);
+    const freePlan = await SubscriptionPlan.findOne({ slug: "free", isActive: true });
+    if (!freePlan) {
+        throw new ApiError(500, "Default subscription plan not found. Run the seeder first.");
+    }
 
 
-//     const company = await Company.create({
-//         name,
-//         email: email.toLowerCase(),
-//         phone,
-//         address,
-//         domain: domain.toLowerCase(),
-//         industry,
-//         subscription: {
-//             planId: freePlan._id,
-//             planSlug: "free",
-//             status: "trial",
-//             trialEndsAt,
-//             currentPeriodEnd: trialEndsAt
-//         }
-//     });
+    const trialEndsAt = new Date();
+    trialEndsAt.setDate(trialEndsAt.getDate() + 14);
 
 
-//     const admin = await Admin.create({
-//         companyId: company._id,
-//         name: adminName,
-//         email: adminEmail.toLowerCase(),
-//         phone: adminPhone,
-//         password: adminPassword
-//     });
+    const company = await Company.create({
+        name,
+        email: email.toLowerCase(),
+        phone,
+        address,
+        domain: domain.toLowerCase(),
+        industry,
+        subscription: {
+            planId: freePlan._id,
+            planSlug: "free",
+            status: "trial",
+            trialEndsAt,
+            currentPeriodEnd: trialEndsAt
+        }
+    });
 
 
-//     company.ownerId = admin._id;
-//     await company.save();
+    const admin = await Admin.create({
+        companyId: company._id,
+        name: adminName,
+        email: adminEmail.toLowerCase(),
+        phone: adminPhone,
+        password: adminPassword
+    });
 
-//     return res.status(201).json(
-//         new ApiResponse(201, {
-//             company: {
-//                 _id: company._id,
-//                 name: company.name,
-//                 email: company.email,
-//                 domain: company.domain,
-//                 subscription: company.subscription
-//             },
-//             admin: {
-//                 _id: admin._id,
-//                 name: admin.name,
-//                 email: admin.email
-//             },
-//             plan: {
-//                 name: freePlan.name,
-//                 limits: freePlan.limits,
-//                 trialEndsAt
-//             }
-//         }, "Company created successfully with admin account")
-//     );
-// });
+
+    company.ownerId = admin._id;
+    await company.save();
+
+    return res.status(201).json(
+        new ApiResponse(201, {
+            company: {
+                _id: company._id,
+                name: company.name,
+                email: company.email,
+                domain: company.domain,
+                subscription: company.subscription
+            },
+            admin: {
+                _id: admin._id,
+                name: admin.name,
+                email: admin.email
+            },
+            plan: {
+                name: freePlan.name,
+                limits: freePlan.limits,
+                trialEndsAt
+            }
+        }, "Company created successfully with admin account")
+    );
+});
 
 
 
@@ -322,7 +322,7 @@ const getDashboardStats = asynchandler(async (req, res) => {
     activeSubCompanies.forEach(c => {
         const price = planMap[c.subscription.planSlug] || 0;
         if (c.subscription.billingCycle === 'yearly') {
-            monthlyRevenue += price * 0.83; 
+            monthlyRevenue += price * 0.83;
         } else {
             monthlyRevenue += price;
         }
@@ -358,7 +358,7 @@ export {
     registerSuperOwner,
     loginSuperOwner,
     logoutSuperOwner,
-    //createCompany,
+    createCompany,
     getAllCompanies,
     getCompanyDetails,
     updateCompanySubscription,

@@ -3,12 +3,33 @@ import Engineer from "../models/Engineer.model.js";
 import { asynchandler } from "../utility/AsyncHandler.js";
 import { ApiResponse } from "../utility/ApiResponse.js";
 import { ApiError } from "../utility/ApiError.js";
+import fs from "fs";
+import { getImageKit } from "../config/imageKit.js";
 
 const createIssue = asynchandler(async (req, res) => {
-    const { title, description, priority, category } = req.body;
+    const { title, description, priority, category, location, type } = req.body;
 
     if (!title || !category) {
         throw new ApiError(400, "Title and category are required");
+    }
+
+    let imageFileId = null;
+    let imageUrl = null;
+
+    if (req.file) {
+        try {
+            const uploadedResponse = await getImageKit().upload({
+                file: fs.readFileSync(req.file.path),
+                fileName: `issue-${Date.now()}`,
+                folder: `/issues_company_${req.user.companyId}`
+            });
+            imageUrl = uploadedResponse.url;
+            imageFileId = uploadedResponse.fileId;
+            fs.unlinkSync(req.file.path);
+        } catch (uploadError) {
+            if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+            throw new ApiError(500, "Failed to upload image: " + uploadError.message);
+        }
     }
 
     const issue = await Issue.create({
@@ -16,6 +37,9 @@ const createIssue = asynchandler(async (req, res) => {
         description,
         priority: priority || "Medium",
         category,
+        location: location || {},
+        attachment: imageUrl || null,
+        type: type || 'OTHER',
         createdBy: req.user._id,
         companyId: req.user.companyId,
         status: "Open"
@@ -27,41 +51,24 @@ const createIssue = asynchandler(async (req, res) => {
 });
 
 const getAllIssues = asynchandler(async (req, res) => {
-    const { status, priority, search, page = 1, limit = 10 } = req.query;
-    const query = { companyId: req.user.companyId };
+    const { status, priority, type, userId } = req.query;
 
-    if (status) query.status = status;
-    if (priority) query.priority = priority;
-    if (search) {
-        query.$or = [
-            { title: { $regex: search, $options: "i" } },
-            { description: { $regex: search, $options: "i" } }
-        ];
-    }
 
-    const skip = (page - 1) * limit;
+    const filter = {};
+    if (status) filter.status = status;
+    if (priority) filter.priority = priority;
+    if (type) filter.type = type;
+    if (userId) filter.user = userId;
 
-    const [issues, total] = await Promise.all([
-        Issue.find(query)
-            .populate("assignedTo", "name email")
-            .populate("createdBy", "name email")
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(parseInt(limit)),
-        Issue.countDocuments(query)
-    ]);
+    const issues = await Issue.find(filter)
+        .populate('user', 'name email phone')
+        .populate('Engineer', 'name email phone')
+        .sort({ createdAt: -1 })
+        .select('-__v');
 
-    return res.status(200).json(
-        new ApiResponse(200, {
-            issues,
-            pagination: {
-                total,
-                page: parseInt(page),
-                limit: parseInt(limit),
-                totalPages: Math.ceil(total / limit)
-            }
-        }, "Issues fetched successfully")
-    );
+    return res
+        .status(200)
+        .json(new ApiResponse(200, issues, "Issues retrieved successfully"));
 });
 
 const getIssueById = asynchandler(async (req, res) => {
@@ -197,6 +204,9 @@ const updateIssue = asynchandler(async (req, res) => {
     if (title) issue.title = title;
     if (description) issue.description = description;
     if (priority) issue.priority = priority;
+    if (req.body.location) issue.location = req.body.location;
+    if (req.body.type) issue.type = req.body.type;
+    // Attachment update is tricky without file upload in this route, skipping for now unless explicit.
 
     await issue.save();
 

@@ -13,11 +13,13 @@ import {
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { verifyRoles } from "../middlewares/rbac.middleware.js";
 
+import { upload } from "../middlewares/multer.middleware.js";
+
 const router = Router();
 
 router.use(verifyJWT);
 
-router.post("/create", verifyRoles("user"), createIssue);
+router.post("/create", verifyRoles("user"), upload.single("attachment"), createIssue);
 
 router.get("/", verifyRoles("admin", "company"), getAllIssues); // Admin/Company wide
 router.get("/user", verifyRoles("user"), getUserIssues); // User specific

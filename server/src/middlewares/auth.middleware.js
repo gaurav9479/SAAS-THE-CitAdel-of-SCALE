@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 import Engineer from "../models/Engineer.model.js";
 import Admin from "../models/admin.model.js";
+import SuperOwner from "../models/superOwner.model.js";
 
 export const verifyJWT = asynchandler(async (req, _, next) => {
     try {
@@ -27,6 +28,11 @@ export const verifyJWT = asynchandler(async (req, _, next) => {
         if (!user) {
             user = await Admin.findById(decodedToken?._id).select("-password -refreshtoken");
             role = "admin";
+        }
+
+        if (!user) {
+            user = await SuperOwner.findById(decodedToken?._id).select("-password -refreshtoken");
+            role = "superowner";
         }
 
         if (!user) {

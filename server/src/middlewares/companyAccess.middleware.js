@@ -8,7 +8,7 @@ export const verifyCompanyAccess = (req, res, next) => {
 
     const { companyId } = req.params;
 
-    // If no companyId in params, skip check (or enforce if strictly required)
+
     if (!companyId) {
         return next();
     }

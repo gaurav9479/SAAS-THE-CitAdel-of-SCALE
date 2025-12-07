@@ -11,7 +11,7 @@ import { ApiError } from "../utility/ApiError.js";
 const loginAdmin = asynchandler(async (req, res) => {
     const { email, password, company } = req.body;
 
-    if (!email || !password ||!company) {
+    if (!email || !password || !company) {
         throw new ApiError(400, "Email and password are required");
     }
     const admin = await Admin.findOne({
@@ -195,28 +195,28 @@ const getDashboardStats = asynchandler(async (req, res) => {
 
 
 
-const getUsers = asynchandler(async (req, res) => {
-    const users = await User.find({ companyId: req.user.companyId })
-        .select("-password -refreshToken")
-        .sort({ createdAt: -1 });
+// const getUsers = asynchandler(async (req, res) => {
+//     const users = await User.find({ companyId: req.user.companyId })
+//         .select("-password -refreshToken")
+//         .sort({ createdAt: -1 });
 
-    return res.status(200).json(
-        new ApiResponse(200, users, "Users fetched successfully")
-    );
-});
+//     return res.status(200).json(
+//         new ApiResponse(200, users, "Users fetched successfully")
+//     );
+// });
 
 
 
-const getEngineers = asynchandler(async (req, res) => {
-    const engineers = await Engineer.find({ companyId: req.user.companyId })
-        .populate('departmentId', 'name')
-        .select("-password -refreshToken")
-        .sort({ createdAt: -1 });
+// const getEngineers = asynchandler(async (req, res) => {
+//     const engineers = await Engineer.find({ companyId: req.user.companyId })
+//         .populate('departmentId', 'name')
+//         .select("-password -refreshToken")
+//         .sort({ createdAt: -1 });
 
-    return res.status(200).json(
-        new ApiResponse(200, engineers, "Engineers fetched successfully")
-    );
-});
+//     return res.status(200).json(
+//         new ApiResponse(200, engineers, "Engineers fetched successfully")
+//     );
+// });
 
 
 const logoutAdmin = asynchandler(async (req, res) => {
@@ -252,7 +252,7 @@ export {
     logoutAdmin,
     getDashboardStats,
     //addUser,
-    getUsers,
-    getEngineers,
+    // getUsers,
+    // getEngineers,
     getCompanyInfo
 };

@@ -3,6 +3,7 @@ import {
     registerSuperOwner,
     loginSuperOwner,
     logoutSuperOwner,
+    createCompany,
     getAllCompanies,
     getCompanyDetails,
     updateCompanySubscription,
@@ -22,7 +23,8 @@ router.post("/logout", logoutSuperOwner);
 
 
 router.get("/dashboard/stats", getDashboardStats);
-router.get("/companies", getAllCompanies); 
+router.post("/companies", createCompany);
+router.get("/companies", getAllCompanies);
 router.get("/companies/:companyId", getCompanyDetails);
 router.patch("/companies/:companyId/subscription", updateCompanySubscription);
 

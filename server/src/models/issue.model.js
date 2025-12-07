@@ -24,14 +24,25 @@ const issueSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    location: {
+        type: Map,
+        of: String
+    },
+    attachment: {
+        type: String // URL from ImageKit
+    },
+    type: {
+        type: String,
+        default: 'OTHER'
+    },
     priority: {
         type: String,
-        enum: ["Low", "Medium", "High", "Critical"],
+        enum: ["Low", "Medium", "High", "Critical", "MEDIUM"], // Added MEDIUM for compatibility
         default: "Medium"
     },
     status: {
         type: String,
-        enum: ["Open", "Assigned", "In Progress", "Resolved", "Closed"],
+        enum: ["Open", "Assigned", "In Progress", "Resolved", "Closed", "PENDING", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CLOSED"], // Merging enums for safety
         default: "Open"
     },
     assignedTo: {
