@@ -6,18 +6,54 @@ import { ApiResponse } from "../utility/ApiResponse.js";
 import { ApiError } from "../utility/ApiError.js";
 
 
-const getCompanyFromDomain = async (req) => {
-    const host = req.headers.host || req.hostname;
-    const companyDomain = req.headers["x-company-domain"] || host.split(".")[0];
 
-    if (!companyDomain || companyDomain === "www" || companyDomain === "localhost" || companyDomain === "api") {
-        return null;
+
+const registerUser = asynchandler(async (req, res) => {
+    const { name, email, phone, password, companyName, role } = req.body;
+
+    if ([name, email, phone, password].some((field) => field?.trim() === "")) {
+        throw new ApiError(400, "Name, email, phone, and password are required");
     }
 
-    return await Company.findOne({ domain: companyDomain.toLowerCase(), isActive: true });
-};
+    if (!companyName) {
+        throw new ApiError(400, "Company name is required");
+    }
 
+    const company = await Company.findOne({ name: companyName });
 
+    if (!company) {
+        throw new ApiError(404, "Company not found with the provided name");
+    }
+
+    const existedUser = await User.findOne({
+        $or: [{ email: email.toLowerCase() }, { phone }],
+        companyId: company._id
+    });
+
+    if (existedUser) {
+        throw new ApiError(409, "User with this email or phone already exists in this company");
+    }
+
+    const user = await User.create({
+        name,
+        email: email.toLowerCase(),
+        phone,
+        password,
+        role: role || "user",
+        companyId: company._id,
+        avatarUrl
+    });
+
+    const createdUser = await User.findById(user._id).select("-password -refreshToken");
+
+    if (!createdUser) {
+        throw new ApiError(500, "Something went wrong while creating the user");
+    }
+
+    return res
+        .status(201)
+        .json(new ApiResponse(201, createdUser, "User created successfully"));
+});
 
 const loginUser = asynchandler(async (req, res) => {
     const { email, password } = req.body;
@@ -25,22 +61,20 @@ const loginUser = asynchandler(async (req, res) => {
     if (!email || !password) {
         throw new ApiError(400, "Email and password are required");
     }
-    const company = await getCompanyFromDomain(req);
-    if (!company) {
-        throw new ApiError(404, "Company not found. Please access from your company's domain.");
-    }
+
+
 
     const user = await User.findOne({
-        email: email.toLowerCase(),
-        companyId: company._id
+        email: email.toLowerCase()
     });
 
     if (!user) {
         throw new ApiError(401, "Invalid email or password");
     }
+    const company = await Company.findById(user.companyId);
 
-    if (!user.isActive) {
-        throw new ApiError(403, "Your account has been deactivated. Please contact your administrator.");
+    if (!company) {
+        throw new ApiError(404, "Company associated with this user not found");
     }
 
     if (company.subscription.status === "expired" || company.subscription.status === "suspended") {
@@ -101,61 +135,6 @@ const getProfile = asynchandler(async (req, res) => {
     );
 });
 
-
-
-const updateProfile = asynchandler(async (req, res) => {
-    const { name, phone, avatarUrl } = req.body;
-
-    const updateData = {};
-    if (name) updateData.name = name;
-    if (phone) updateData.phone = phone;
-    if (avatarUrl) updateData.avatarUrl = avatarUrl;
-
-    const user = await User.findByIdAndUpdate(
-        req.user._id,
-        { $set: updateData },
-        { new: true, runValidators: true }
-    ).select("-password -refreshToken");
-
-    if (!user) {
-        throw new ApiError(404, "User not found");
-    }
-
-    return res.status(200).json(
-        new ApiResponse(200, user, "Profile updated successfully")
-    );
-});
-
-
-const changePassword = asynchandler(async (req, res) => {
-    const { currentPassword, newPassword } = req.body;
-
-    if (!currentPassword || !newPassword) {
-        throw new ApiError(400, "Current password and new password are required");
-    }
-
-    if (newPassword.length < 6) {
-        throw new ApiError(400, "New password must be at least 6 characters");
-    }
-
-    const user = await User.findById(req.user._id);
-    if (!user) {
-        throw new ApiError(404, "User not found");
-    }
-
-    const isPasswordValid = await user.comparePassword(currentPassword);
-    if (!isPasswordValid) {
-        throw new ApiError(401, "Current password is incorrect");
-    }
-
-    user.password = newPassword;
-    await user.save();
-
-    return res.status(200).json(
-        new ApiResponse(200, null, "Password changed successfully")
-    );
-});
-
 const logoutUser = asynchandler(async (req, res) => {
     await User.findByIdAndUpdate(req.user._id, {
         $unset: { refreshToken: 1 }
@@ -166,8 +145,7 @@ const logoutUser = asynchandler(async (req, res) => {
 export {
     loginUser,
     logoutUser,
+    registerUser,
     getProfile,
-    updateProfile,
-    changePassword,
     refreshToken
 };
