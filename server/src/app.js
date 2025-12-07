@@ -7,7 +7,7 @@ import { ApiResponse } from "./utility/ApiResponse.js"
 const app = express()
 dotenv.config()
 app.use(cors({
-    origin: process.env.CORS_ORIGIN === "*" ? true : (process.env.CORS_ORIGIN || "http://localhost:5173"),
+    origin: process.env.CORS,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true
 }))
