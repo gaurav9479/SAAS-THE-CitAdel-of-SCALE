@@ -2,7 +2,8 @@ import mongoose from "mongoose";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-const userSchema = new mongoose.Schema({
+
+const adminSchema = new mongoose.Schema({
     companyId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Company",
@@ -30,8 +31,7 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ["user"],
-        default: "user"
+        default: "admin"
     },
     avatarUrl: {
         type: String
@@ -39,27 +39,35 @@ const userSchema = new mongoose.Schema({
     refreshToken: {
         type: String
     },
+    permissions: {
+        manageUsers: { type: Boolean, default: true },
+        manageEngineers: { type: Boolean, default: true },
+        manageIssues: { type: Boolean, default: true },
+        viewReports: { type: Boolean, default: true },
+        manageDepartments: { type: Boolean, default: true }
+    },
     isActive: {
         type: Boolean,
         default: true
+    },
+    lastLogin: {
+        type: Date
     }
 }, { timestamps: true });
 
 
-userSchema.pre('save', async function (next) {
+adminSchema.pre('save', async function (next) {
     if (!this.isModified('password')) return next();
     const rounds = 10;
     this.password = await bcrypt.hash(this.password, rounds);
     next();
 });
 
-
-userSchema.methods.comparePassword = async function (candidatePassword) {
+adminSchema.methods.comparePassword = async function (candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);
 };
 
-
-userSchema.methods.generateAccessToken = function () {
+adminSchema.methods.generateAccessToken = function () {
     return jwt.sign(
         {
             _id: this._id,
@@ -75,8 +83,7 @@ userSchema.methods.generateAccessToken = function () {
     );
 };
 
-
-userSchema.methods.generateRefreshToken = function () {
+adminSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
         {
             _id: this._id,
@@ -88,5 +95,7 @@ userSchema.methods.generateRefreshToken = function () {
     );
 };
 
-const User = mongoose.model("User", userSchema);
-export default User;
+adminSchema.index({ companyId: 1, email: 1 });
+
+const Admin = mongoose.model("Admin", adminSchema);
+export default Admin;

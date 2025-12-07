@@ -8,8 +8,8 @@ const companySchema = new mongoose.Schema({
     },
     domain: {
         type: String,
+        required: true,
         unique: true,
-        sparse: true,
         lowercase: true
     },
     email: {
@@ -33,24 +33,27 @@ const companySchema = new mongoose.Schema({
     },
     ownerId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
+        ref: "Admin"
     },
 
 
     subscription: {
-        planId: { type: mongoose.Schema.Types.ObjectId, ref: "SubscriptionPlan" },
-        type: {
+        planId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "SubscriptionPlan"
+        },
+        planSlug: {
             type: String,
             enum: ["free", "starter", "pro", "enterprise"],
             default: "free"
         },
         status: {
             type: String,
-            enum: ["active", "trial", "expired", "suspended", "cancelled"],
+            enum: ["active", "trial", "expired", "suspended"],
             default: "trial"
         },
         trialEndsAt: { type: Date },
-        expiresAt: { type: Date },
+        currentPeriodEnd: { type: Date },
         billingCycle: {
             type: String,
             enum: ["monthly", "yearly"],
@@ -59,24 +62,11 @@ const companySchema = new mongoose.Schema({
     },
 
 
-    
-
-
-    features: {
-        prioritySupport: { type: Boolean, default: false },
-        apiAccess: { type: Boolean, default: false },
-        analytics: { type: Boolean, default: false },
-        customBranding: { type: Boolean, default: false },
-        autoAssignment: { type: Boolean, default: false },
-        slaTracking: { type: Boolean, default: false }
-    },
-
-
-    stats: {
-        totalIssues: { type: Number, default: 0 },
-        resolvedIssues: { type: Number, default: 0 },
-        activeEngineers: { type: Number, default: 0 },
-        activeUsers: { type: Number, default: 0 }
+    usage: {
+        currentUsers: { type: Number, default: 0 },
+        currentEngineers: { type: Number, default: 0 },
+        issuesThisMonth: { type: Number, default: 0 },
+        lastResetDate: { type: Date, default: Date.now }
     },
 
     isActive: {
@@ -86,13 +76,7 @@ const companySchema = new mongoose.Schema({
 }, { timestamps: true });
 
 
-companySchema.virtual('resolutionRate').get(function () {
-    if (this.stats.totalIssues === 0) return 0;
-    return ((this.stats.resolvedIssues / this.stats.totalIssues) * 100).toFixed(2);
-});
-
-
-companySchema.index({ name: 'text' });
+companySchema.index({ domain: 1 });
 companySchema.index({ 'subscription.status': 1 });
 
 const Company = mongoose.model("Company", companySchema);

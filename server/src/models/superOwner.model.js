@@ -2,12 +2,8 @@ import mongoose from "mongoose";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-const userSchema = new mongoose.Schema({
-    companyId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Company",
-        required: true
-    },
+
+const superOwnerSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
@@ -30,8 +26,7 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ["user"],
-        default: "user"
+        default: "superowner"
     },
     avatarUrl: {
         type: String
@@ -39,14 +34,25 @@ const userSchema = new mongoose.Schema({
     refreshToken: {
         type: String
     },
+    permissions: {
+        manageCompanies: { type: Boolean, default: true },
+        manageSubscriptions: { type: Boolean, default: true },
+        viewAnalytics: { type: Boolean, default: true },
+        managePlans: { type: Boolean, default: true },
+        managePayments: { type: Boolean, default: true }
+    },
     isActive: {
         type: Boolean,
         default: true
+    },
+    lastLogin: {
+        type: Date
     }
 }, { timestamps: true });
 
 
-userSchema.pre('save', async function (next) {
+
+superOwnerSchema.pre('save', async function (next) {
     if (!this.isModified('password')) return next();
     const rounds = 10;
     this.password = await bcrypt.hash(this.password, rounds);
@@ -54,19 +60,18 @@ userSchema.pre('save', async function (next) {
 });
 
 
-userSchema.methods.comparePassword = async function (candidatePassword) {
+superOwnerSchema.methods.comparePassword = async function (candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);
 };
 
 
-userSchema.methods.generateAccessToken = function () {
+superOwnerSchema.methods.generateAccessToken = function () {
     return jwt.sign(
         {
             _id: this._id,
             name: this.name,
             email: this.email,
-            role: this.role,
-            companyId: this.companyId
+            role: this.role
         },
         process.env.ACCESS_TOKEN_SECRET,
         {
@@ -76,7 +81,7 @@ userSchema.methods.generateAccessToken = function () {
 };
 
 
-userSchema.methods.generateRefreshToken = function () {
+superOwnerSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
         {
             _id: this._id,
@@ -88,5 +93,5 @@ userSchema.methods.generateRefreshToken = function () {
     );
 };
 
-const User = mongoose.model("User", userSchema);
-export default User;
+const SuperOwner = mongoose.model("SuperOwner", superOwnerSchema);
+export default SuperOwner;

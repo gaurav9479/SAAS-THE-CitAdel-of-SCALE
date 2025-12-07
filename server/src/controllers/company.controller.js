@@ -9,7 +9,7 @@ const registerCompany = asynchandler(async (req, res) => {
 
 
     if (!name || !email || !address) {
-        throw new ApiError(400, "Name, email, and address are required");
+        throw new ApiError(400, "fill all credentials");
     }
 
 
@@ -36,9 +36,6 @@ const registerCompany = asynchandler(async (req, res) => {
         new ApiResponse(201, company, "Company registered successfully")
     );
 });
-
-
-
 
 const getCompanyById = asynchandler(async (req, res) => {
     const { companyId } = req.params;
@@ -170,5 +167,6 @@ export {
     updateCompany,
     deleteCompany,
     getCompanyStats,
-    updateSubscription
+    updateSubscription,
+    countUsers
 };
