@@ -76,7 +76,7 @@ const companySchema = new mongoose.Schema({
 }, { timestamps: true });
 
 
-companySchema.index({ domain: 1 });
+
 companySchema.index({ 'subscription.status': 1 });
 
 const Company = mongoose.model("Company", companySchema);

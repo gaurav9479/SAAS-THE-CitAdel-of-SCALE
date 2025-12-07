@@ -10,7 +10,7 @@ const subscriptionPlanSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-        lowercase: true  
+        lowercase: true
     },
     description: {
         type: String,
@@ -49,7 +49,7 @@ subscriptionPlanSchema.methods.hasFeature = function (featureName) {
 
 subscriptionPlanSchema.methods.isWithinLimit = function (limitName, currentValue) {
     const limit = this.limits[limitName];
-    if (limit === -1) return true; 
+    if (limit === -1) return true;
     return currentValue < limit;
 };
 
@@ -58,7 +58,7 @@ subscriptionPlanSchema.statics.findBySlug = function (slug) {
 };
 
 
-subscriptionPlanSchema.index({ slug: 1 });
+
 subscriptionPlanSchema.index({ isActive: 1, displayOrder: 1 });
 
 const SubscriptionPlan = mongoose.model("SubscriptionPlan", subscriptionPlanSchema);

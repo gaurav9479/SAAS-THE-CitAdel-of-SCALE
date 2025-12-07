@@ -17,6 +17,22 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 
+// Route imports
+import userRouter from "./Routes/user.routes.js";
+import companyRouter from "./Routes/company.routes.js";
+import engineerRouter from "./Routes/engineer.routes.js";
+import superOwnerRouter from "./Routes/superOwner.routes.js";
+import issueRouter from "./Routes/issue.routes.js";
+
+
+// Route declaration
+app.use("/api/v1/user", userRouter);
+app.use("/api/v1/company", companyRouter);
+app.use("/api/v1/engineer", engineerRouter);
+app.use("/api/v1/super-owner", superOwnerRouter);
+app.use("/api/v1/issue", issueRouter);
+
+
 app.get("/api/v1/running", (req, res) => {
     res.status(200).json(new ApiResponse(200, {}, "Server is running"))
 })

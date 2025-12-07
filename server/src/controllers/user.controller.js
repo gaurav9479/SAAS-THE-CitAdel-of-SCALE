@@ -5,13 +5,10 @@ import { asynchandler } from "../utility/AsyncHandler.js";
 import { ApiResponse } from "../utility/ApiResponse.js";
 import { ApiError } from "../utility/ApiError.js";
 
-
-
-
 const registerUser = asynchandler(async (req, res) => {
     const { name, email, phone, password, companyName, role } = req.body;
 
-    if ([name, email, phone, password].some((field) => field?.trim() === "")) {
+    if ([name, email, phone, password,companyName].some((field) => field?.trim() === "")) {
         throw new ApiError(400, "Name, email, phone, and password are required");
     }
 
@@ -118,22 +115,22 @@ const loginUser = asynchandler(async (req, res) => {
 
 
 
-const getProfile = asynchandler(async (req, res) => {
-    const user = await User.findById(req.user._id).select("-password -refreshToken");
+// const getProfile = asynchandler(async (req, res) => {
+//     const user = await User.findById(req.user._id).select("-password -refreshToken");
 
-    if (!user) {
-        throw new ApiError(404, "User not found");
-    }
+//     if (!user) {
+//         throw new ApiError(404, "User not found");
+//     }
 
-    const company = await Company.findById(user.companyId).select("name logo domain");
+//     const company = await Company.findById(user.companyId).select("name logo domain");
 
-    return res.status(200).json(
-        new ApiResponse(200, {
-            user,
-            company
-        }, "Profile fetched successfully")
-    );
-});
+//     return res.status(200).json(
+//         new ApiResponse(200, {
+//             user,
+//             company
+//         }, "Profile fetched successfully")
+//     );
+// });
 
 const logoutUser = asynchandler(async (req, res) => {
     await User.findByIdAndUpdate(req.user._id, {
@@ -146,6 +143,6 @@ export {
     loginUser,
     logoutUser,
     registerUser,
-    getProfile,
-    refreshToken
+    // getProfile,
+
 };

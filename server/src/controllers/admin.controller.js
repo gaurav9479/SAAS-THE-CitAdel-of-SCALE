@@ -103,95 +103,95 @@ const getDashboardStats = asynchandler(async (req, res) => {
 
 
 
-const addUser = asynchandler(async (req, res) => {
-    const { name, email, phone, password } = req.body;
-    const companyId = req.user.companyId;
+// const addUser = asynchandler(async (req, res) => {
+//     const { name, email, phone, password } = req.body;
+//     const companyId = req.user.companyId;
 
-    if (!name || !email || !password) {
-        throw new ApiError(400, "Name, email, and password are required");
-    }
-    const company = await Company.findById(companyId);
-    const plan = await SubscriptionPlan.findById(company.subscription.planId);
-
-
-    const currentUserCount = await User.countDocuments({ companyId });
-    if (plan.limits.maxUsers !== -1 && currentUserCount >= plan.limits.maxUsers) {
-        throw new ApiError(403, `User limit reached (${plan.limits.maxUsers}). Please upgrade your plan.`);
-    }
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
-    if (existingUser) {
-        throw new ApiError(409, "User with this email already exists");
-    }
-
-    const user = await User.create({
-        companyId,
-        name,
-        email: email.toLowerCase(),
-        phone,
-        password
-    });
+//     if (!name || !email || !password) {
+//         throw new ApiError(400, "Name, email, and password are required");
+//     }
+//     const company = await Company.findById(companyId);
+//     const plan = await SubscriptionPlan.findById(company.subscription.planId);
 
 
-    company.usage.currentUsers = currentUserCount + 1;
-    await company.save();
+//     const currentUserCount = await User.countDocuments({ companyId });
+//     if (plan.limits.maxUsers !== -1 && currentUserCount >= plan.limits.maxUsers) {
+//         throw new ApiError(403, `User limit reached (${plan.limits.maxUsers}). Please upgrade your plan.`);
+//     }
+//     const existingUser = await User.findOne({ email: email.toLowerCase() });
+//     if (existingUser) {
+//         throw new ApiError(409, "User with this email already exists");
+//     }
 
-    const userResponse = user.toObject();
-    delete userResponse.password;
-    delete userResponse.refreshToken;
-
-    return res.status(201).json(
-        new ApiResponse(201, userResponse, "User added successfully")
-    );
-});
-
-
-
-const addEngineer = asynchandler(async (req, res) => {
-    const { name, email, phone, password, departmentId, specialization } = req.body;
-    const companyId = req.user.companyId;
-
-    if (!name || !email || !password || !departmentId) {
-        throw new ApiError(400, "Name, email, password, and department are required");
-    }
+//     const user = await User.create({
+//         companyId,
+//         name,
+//         email: email.toLowerCase(),
+//         phone,
+//         password
+//     });
 
 
-    const company = await Company.findById(companyId);
-    const plan = await SubscriptionPlan.findById(company.subscription.planId);
+//     company.usage.currentUsers = currentUserCount + 1;
+//     await company.save();
+
+//     const userResponse = user.toObject();
+//     delete userResponse.password;
+//     delete userResponse.refreshToken;
+
+//     return res.status(201).json(
+//         new ApiResponse(201, userResponse, "User added successfully")
+//     );
+// });
 
 
-    const currentEngineerCount = await Engineer.countDocuments({ companyId });
-    if (plan.limits.maxEngineers !== -1 && currentEngineerCount >= plan.limits.maxEngineers) {
-        throw new ApiError(403, `Engineer limit reached (${plan.limits.maxEngineers}). Please upgrade your plan.`);
-    }
+
+// const addEngineer = asynchandler(async (req, res) => {
+//     const { name, email, phone, password, departmentId, specialization } = req.body;
+//     const companyId = req.user.companyId;
+
+//     if (!name || !email || !password || !departmentId) {
+//         throw new ApiError(400, "Name, email, password, and department are required");
+//     }
 
 
-    const existingEngineer = await Engineer.findOne({ email: email.toLowerCase() });
-    if (existingEngineer) {
-        throw new ApiError(409, "Engineer with this email already exists");
-    }
-
-    const engineer = await Engineer.create({
-        companyId,
-        departmentId,
-        name,
-        email: email.toLowerCase(),
-        phone,
-        password,
-        specialization
-    });
+//     const company = await Company.findById(companyId);
+//     const plan = await SubscriptionPlan.findById(company.subscription.planId);
 
 
-    company.usage.currentEngineers = currentEngineerCount + 1;
-    await company.save();
+//     const currentEngineerCount = await Engineer.countDocuments({ companyId });
+//     if (plan.limits.maxEngineers !== -1 && currentEngineerCount >= plan.limits.maxEngineers) {
+//         throw new ApiError(403, `Engineer limit reached (${plan.limits.maxEngineers}). Please upgrade your plan.`);
+//     }
 
-    const engineerResponse = engineer.toObject();
-    delete engineerResponse.password;
-    delete engineerResponse.refreshToken;
 
-    return res.status(201).json(
-        new ApiResponse(201, engineerResponse, "Engineer added successfully")
-    );
-});
+//     const existingEngineer = await Engineer.findOne({ email: email.toLowerCase() });
+//     if (existingEngineer) {
+//         throw new ApiError(409, "Engineer with this email already exists");
+//     }
+
+//     const engineer = await Engineer.create({
+//         companyId,
+//         departmentId,
+//         name,
+//         email: email.toLowerCase(),
+//         phone,
+//         password,
+//         specialization
+//     });
+
+
+//     company.usage.currentEngineers = currentEngineerCount + 1;
+//     await company.save();
+
+//     const engineerResponse = engineer.toObject();
+//     delete engineerResponse.password;
+//     delete engineerResponse.refreshToken;
+
+//     return res.status(201).json(
+//         new ApiResponse(201, engineerResponse, "Engineer added successfully")
+//     );
+// });
 
 
 
@@ -251,8 +251,7 @@ export {
     loginAdmin,
     logoutAdmin,
     getDashboardStats,
-    addUser,
-    addEngineer,
+    //addUser,
     getUsers,
     getEngineers,
     getCompanyInfo

@@ -1,4 +1,5 @@
 import Company from "../models/company.model.js";
+import Admin from "../models/admin.model.js";
 import { asynchandler } from "../utility/AsyncHandler.js";
 import { ApiResponse } from "../utility/ApiResponse.js";
 import { ApiError } from "../utility/ApiError.js";
@@ -29,7 +30,7 @@ const registerCompany = asynchandler(async (req, res) => {
         address,
         industry,
         domain,
-        ownerId: req.user?._id 
+        ownerId: req.user?._id
     });
 
     return res.status(201).json(
@@ -52,32 +53,32 @@ const getCompanyById = asynchandler(async (req, res) => {
 });
 
 
-const updateCompany = asynchandler(async (req, res) => {
-    const { companyId } = req.params;
-    const updateData = req.body;
+// const updateCompany = asynchandler(async (req, res) => {
+//     const { companyId } = req.params;
+//     const updateData = req.body;
 
 
-    delete updateData.ownerId;
-    delete updateData.stats;
+//     delete updateData.ownerId;
+//     delete updateData.stats;
 
-    const company = await Company.findByIdAndUpdate(
-        companyId,
-        { $set: updateData },
-        { new: true, runValidators: true }
-    );
+//     const company = await Company.findByIdAndUpdate(
+//         companyId,
+//         { $set: updateData },
+//         { new: true, runValidators: true }
+//     );
 
-    if (!company) {
-        throw new ApiError(404, "Company not found");
-    }
+//     if (!company) {
+//         throw new ApiError(404, "Company not found");
+//     }
 
-    return res.status(200).json(
-        new ApiResponse(200, company, "Company updated successfully")
-    );
-});
+//     return res.status(200).json(
+//         new ApiResponse(200, company, "Company updated successfully")
+//     );
+// });
 
 
 const getAllCompanies = asynchandler(async (req, res) => {
-    const { search, status } = req.query;  
+    const { search, status } = req.query;
     const query = {};
 
 
@@ -100,19 +101,19 @@ const getAllCompanies = asynchandler(async (req, res) => {
 
 
 
-const deleteCompany = asynchandler(async (req, res) => {
-    const { companyId } = req.params;
+// const deleteCompany = asynchandler(async (req, res) => {
+//     const { companyId } = req.params;
 
-    const company = await Company.findByIdAndDelete(companyId);
+//     const company = await Company.findByIdAndDelete(companyId);
 
-    if (!company) {
-        throw new ApiError(404, "Company not found");
-    }
+//     if (!company) {
+//         throw new ApiError(404, "Company not found");
+//     }
 
-    return res.status(200).json(
-        new ApiResponse(200, null, "Company deleted successfully")
-    );
-});
+//     return res.status(200).json(
+//         new ApiResponse(200, null, "Company deleted successfully")
+//     );
+// });
 
 
 const getCompanyStats = asynchandler(async (req, res) => {
@@ -160,13 +161,50 @@ const updateSubscription = asynchandler(async (req, res) => {
     );
 });
 
+const registerAdmin = asynchandler(async (req, res) => {
+    const { name, email, password, phone, companyId } = req.body;
+
+    if ([name, email, password, companyId].some((field) => field?.trim() === "")) {
+        throw new ApiError(400, "Name, email, password, and companyId are required");
+    }
+
+    const company = await Company.findById(companyId);
+    if (!company) {
+        throw new ApiError(404, "Company not found");
+    }
+
+    const existingAdmin = await Admin.findOne({ email: email.toLowerCase() });
+    if (existingAdmin) {
+        throw new ApiError(409, "Admin with this email already exists");
+    }
+
+    const admin = await Admin.create({
+        name,
+        email: email.toLowerCase(),
+        password,
+        phone,
+        companyId
+    });
+
+    const createdAdmin = await Admin.findById(admin._id).select("-password -refreshToken");
+
+    if (!createdAdmin) {
+        throw new ApiError(500, "Something went wrong while registering the admin");
+    }
+
+    return res.status(201).json(
+        new ApiResponse(201, createdAdmin, "Admin registered successfully")
+    );
+});
+
 export {
+    registerAdmin,
     registerCompany,
     getAllCompanies,
     getCompanyById,
-    updateCompany,
-    deleteCompany,
+    // updateCompany,
+    // deleteCompany,
     getCompanyStats,
     updateSubscription,
-    countUsers
+
 };
