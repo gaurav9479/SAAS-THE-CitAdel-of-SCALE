@@ -38,6 +38,7 @@ export default function Register() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [role, setRole] = useState('citizen')
   const [phone, setPhone] = useState('')
   const [departmentId, setDepartmentId] = useState('')
@@ -149,7 +150,24 @@ export default function Register() {
         {error && <p className="text-red-200 text-sm">{error}</p>}
         <input autoComplete="name" className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Name" value={name} onChange={(e)=>setName(e.target.value)} />
         <input autoComplete="email" className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Email" type="email" value={email} onChange={(e)=>setEmail(e.target.value)} />
-        <input autoComplete="new-password" className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Password" type="password" value={password} onChange={(e)=>setPassword(e.target.value)} />
+        <div className="relative">
+          <input
+            autoComplete="new-password"
+            className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 pr-11 outline-none focus:ring-2 focus:ring-emerald-500"
+            placeholder="Password"
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e)=>setPassword(e.target.value)}
+          />
+          <button
+            type="button"
+            onClick={()=>setShowPassword(v=>!v)}
+            className="absolute inset-y-0 right-0 px-3 text-sm text-emerald-700 hover:text-emerald-900"
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+          >
+            {showPassword ? 'Hide' : 'Show'}
+          </button>
+        </div>
         <div>
           <label className="block text-sm font-medium mb-1">Phone Number (optional)</label>
           <PhoneInput
