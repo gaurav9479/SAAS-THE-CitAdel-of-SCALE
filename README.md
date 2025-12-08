@@ -610,6 +610,22 @@ Developed by **Gaurav Prajapati** for the Circus of Wonders. Built with ❤️ u
 
 ---
 
+## 🧭 Subscription Model (Org-Level Plans)
+- Plans are **per-organization**, not per staff or citizen. One org buys a plan → everyone under that org (admins, staff, citizens) inherits it.
+- Complaint routing stays the same across plans: category → department → available staff (skills, location, roster). Plans only change tooling/priority, not routing logic.
+
+### Tiers
+- **Free (Default)**: deliberate friction; manual assignment only; max 2 complaints/day per citizen; no SLA timers; no priority; no staff analytics; no automation; basic status viewing.
+- **God Mode (Pro)**: unlimited complaints; auto-assign; SLA timers + nudges; department/zone analytics; staff ratings/insights; role-based access; automation hooks (assignments, reminders, escalations). Priority routing is **not** included here.
+- **Hyper Priority / Titan**: everything in God Mode **plus** priority queues and faster SLA targets, auto-escalation on breach, priority highlighting, advanced automation (AI triage/load-balancing), enterprise-grade analytics/integrations.
+
+### Practical effects
+- Free orgs: slow/manual ops; minimal tooling; staff dashboards are basic; citizens limited to 2 complaints/day.
+- God Mode orgs: operational automation and analytics; faster turnaround via SLA + auto-assign; richer staff/admin views.
+- Titan orgs: priority handling and escalation; fastest turnaround; advanced automation/analytics; priority queues highlighted in dashboards.
+
+---
+
 ## 🧭 Implementation Guide
 
 ### High-level Scope
