@@ -20,9 +20,13 @@ export function AuthProvider({ children }) {
       try {
         const { data } = await api.get('/api/auth/me')
         setUser(data.user)
-      } catch (_e) {
-        setUser(null)
-        setToken(null)
+      } catch (e) {
+        // Only clear token on auth errors; keep token on network errors so user isn’t logged out on refresh
+        const status = e?.response?.status
+        if (status === 401 || status === 403) {
+          setUser(null)
+          setToken(null)
+        }
       } finally {
         setBootstrapping(false)
       }
