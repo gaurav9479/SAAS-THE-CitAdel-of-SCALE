@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import api from '../api/client'
 import UpgradeModal from './UpgradeModal'
+import PlanBadge from './PlanBadge'
 
 const PLAN_COPY = {
   free: {
@@ -57,7 +58,10 @@ export default function PlanBanner() {
       <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="text-xs uppercase tracking-wide text-emerald-700 font-semibold">{user?.organization?.name || 'Organization'}</div>
-          <div className="text-lg font-semibold text-emerald-900">{copy.label}</div>
+          <div className="flex items-center gap-2">
+            <div className="text-lg font-semibold text-emerald-900">{copy.label}</div>
+            <PlanBadge plan={plan} />
+          </div>
           <div className="text-sm text-emerald-800">{copy.desc}</div>
         </div>
         <div className="flex gap-2 mt-2 sm:mt-0">
