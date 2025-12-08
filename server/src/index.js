@@ -10,6 +10,7 @@ import departmentRoutes from './routes/departmentRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import staffRoutes from './routes/staffRoutes.js';
+import orgRoutes from './routes/orgRoutes.js';
 
 const app = express();
 
@@ -74,6 +75,7 @@ app.use('/api/departments', departmentRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/staff', staffRoutes);
+app.use('/api/orgs', orgRoutes);
 
 const port = process.env.PORT || 5000;
 app.listen(port, () => console.log(`API listening on :${port}`));

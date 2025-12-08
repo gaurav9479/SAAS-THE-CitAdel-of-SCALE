@@ -30,6 +30,7 @@ const complaintSchema = new mongoose.Schema(
             phone: String,
             email: String,
         },
+        organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
 
         assignedDepartmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Department' },
         assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

@@ -2,6 +2,7 @@ import 'dotenv/config'
 import mongoose from 'mongoose'
 import Department from '../models/Department.js'
 import User from '../models/User.js'
+import Organization from '../models/Organization.js'
 
 async function upsertUser(query, data) {
     const existing = await User.findOne(query)
@@ -16,6 +17,15 @@ async function upsertUser(query, data) {
 async function run() {
     await mongoose.connect(process.env.MONGO_URI)
     console.log('Connected')
+
+    // Organizations and plans (org-wide)
+    await Organization.deleteMany({})
+    const orgs = await Organization.create([
+        { name: 'Free Town Org', plan: 'free' },
+        { name: 'Pro City Org', plan: 'god' },
+        { name: 'Titan Metro Org', plan: 'titan' },
+    ])
+    const orgByName = Object.fromEntries(orgs.map(o => [o.name, o]))
 
     const departments = [
         // Roads & Infrastructure
@@ -94,6 +104,7 @@ async function run() {
             email: 'rohan.roads@example.com',
             password: 'ChangeMe123!',
             role: 'staff',
+            organizationId: orgByName['Pro City Org']._id,
             departmentId: byCode.ROAD_MAINT._id,
             staff: {
                 title: 'Field Engineer',
@@ -108,6 +119,7 @@ async function run() {
             email: 'wendy.water@example.com',
             password: 'ChangeMe123!',
             role: 'staff',
+            organizationId: orgByName['Pro City Org']._id,
             departmentId: byCode.WATER_SUP._id,
             staff: {
                 title: 'Plumber',
@@ -122,6 +134,7 @@ async function run() {
             email: 'sanjay.san@example.com',
             password: 'ChangeMe123!',
             role: 'staff',
+            organizationId: orgByName['Pro City Org']._id,
             departmentId: byCode.WASTE._id,
             staff: {
                 title: 'Cleaner',
@@ -136,14 +149,14 @@ async function run() {
     await Promise.all(staff.map(s => upsertUser({ email: s.email }, s)))
     console.log('Staff seeded')
 
-    // Seed admin and citizen test users
+    // Seed admin and citizen test users (God mode org)
     await upsertUser(
         { email: 'admin@example.com' },
-        { name: 'Admin User', email: 'admin@example.com', password: 'ChangeMe123!', role: 'admin' }
+        { name: 'Admin User', email: 'admin@example.com', password: 'ChangeMe123!', role: 'admin', organizationId: orgByName['Pro City Org']._id }
     )
     await upsertUser(
         { email: 'citizen@example.com' },
-        { name: 'Citizen User', email: 'citizen@example.com', password: 'ChangeMe123!', role: 'citizen' }
+        { name: 'Citizen User', email: 'citizen@example.com', password: 'ChangeMe123!', role: 'citizen', organizationId: orgByName['Pro City Org']._id }
     )
     console.log('Admin and citizen seeded')
 

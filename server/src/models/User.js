@@ -8,6 +8,7 @@ const UserSchema = new mongoose.Schema(
         password: { type: String, required: true },
         role: { type: String, enum: ['citizen', 'staff', 'admin'], default: 'citizen' },
         departmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Department' },
+        organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
         staff: {
             title: { type: String },
             skills: { type: [String], default: [] },

@@ -12,13 +12,22 @@ import StaffProfile from '../screens/StaffProfile'
 import ProfileEdit from '../screens/ProfileEdit'
 import ProtectedRoute from '../auth/ProtectedRoute'
 import { useAuth } from '../auth/AuthContext'
+import PlanBanner from '../components/PlanBanner'
 
 function RoleDashboard() {
   const { user } = useAuth()
   if (!user) return null
-  if (user.role === 'admin') return <AdminDashboard />
-  if (user.role === 'staff') return <StaffDashboard />
-  return <div className="space-y-4"><div className="flex justify-end p-6"><Link to="/complaints/new" className="px-4 py-2 rounded bg-emerald-600 text-white">New Complaint</Link></div><CitizenDashboard /></div>
+  if (user.role === 'admin') return <div className="space-y-4 p-4"><PlanBanner /><AdminDashboard /></div>
+  if (user.role === 'staff') return <div className="space-y-4 p-4"><PlanBanner /><StaffDashboard /></div>
+  return (
+    <div className="space-y-4 p-4">
+      <PlanBanner />
+      <div className="flex justify-end">
+        <Link to="/complaints/new" className="px-4 py-2 rounded bg-emerald-600 text-white">New Complaint</Link>
+      </div>
+      <CitizenDashboard />
+    </div>
+  )
 }
 
 const router = createBrowserRouter([
