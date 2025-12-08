@@ -428,8 +428,8 @@ Staff work in ← Departments handle ← Categories ← Complaints get ← Revie
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/gaurav9479/The-Caravan-Chronicle.git
-cd The-Caravan-Chronicle
+git clone https://github.com/gaurav9479/SAAS-THE-CitAdel-of-SCALE.git
+cd SAAS-THE-CitAdel-of-SCALE
 ```
 
 ### 2. Install Dependencies
