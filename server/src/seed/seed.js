@@ -3,6 +3,16 @@ import mongoose from 'mongoose'
 import Department from '../models/Department.js'
 import User from '../models/User.js'
 
+async function upsertUser(query, data) {
+    const existing = await User.findOne(query)
+    if (existing) {
+        Object.assign(existing, data)
+        await existing.save()
+        return existing
+    }
+    return User.create(data)
+}
+
 async function run() {
     await mongoose.connect(process.env.MONGO_URI)
     console.log('Connected')
@@ -77,17 +87,75 @@ async function run() {
 
     const byCode = Object.fromEntries(createdDepts.map(d => [d.code, d]))
 
-    await User.deleteMany({ role: { $in: ['staff'] } })
+    // Seed staff with coordinates so registration flow mirrors production requirements
     const staff = [
-        { name: 'Rohan Roads', email: 'rohan.roads@example.com', password: 'ChangeMe123!', role: 'staff', departmentId: byCode.ROAD_MAINT._id, staff: { title: 'Field Engineer', skills: ['paving'] } },
-        { name: 'Wendy Water', email: 'wendy.water@example.com', password: 'ChangeMe123!', role: 'staff', departmentId: byCode.WATER_SUP._id, staff: { title: 'Plumber', skills: ['pipes', 'valves'] } },
-        { name: 'Sanjay Sanitation', email: 'sanjay.san@example.com', password: 'ChangeMe123!', role: 'staff', departmentId: byCode.WASTE._id, staff: { title: 'Cleaner', skills: ['waste'] } },
+        {
+            name: 'Rohan Roads',
+            email: 'rohan.roads@example.com',
+            password: 'ChangeMe123!',
+            role: 'staff',
+            departmentId: byCode.ROAD_MAINT._id,
+            staff: {
+                title: 'Field Engineer',
+                skills: ['paving'],
+                workArea: { city: 'Delhi', zones: ['Zone A'], location: { lat: 28.6139, lng: 77.2090 } },
+                contactPhone: '+91-9876543210',
+                contactEmail: 'rohan.roads@example.com',
+            },
+        },
+        {
+            name: 'Wendy Water',
+            email: 'wendy.water@example.com',
+            password: 'ChangeMe123!',
+            role: 'staff',
+            departmentId: byCode.WATER_SUP._id,
+            staff: {
+                title: 'Plumber',
+                skills: ['pipes', 'valves'],
+                workArea: { city: 'Delhi', zones: ['Zone B'], location: { lat: 28.6200, lng: 77.2100 } },
+                contactPhone: '+91-9876500000',
+                contactEmail: 'wendy.water@example.com',
+            },
+        },
+        {
+            name: 'Sanjay Sanitation',
+            email: 'sanjay.san@example.com',
+            password: 'ChangeMe123!',
+            role: 'staff',
+            departmentId: byCode.WASTE._id,
+            staff: {
+                title: 'Cleaner',
+                skills: ['waste'],
+                workArea: { city: 'Delhi', zones: ['Zone C'], location: { lat: 28.6250, lng: 77.2150 } },
+                contactPhone: '+91-9876511111',
+                contactEmail: 'sanjay.san@example.com',
+            },
+        },
     ]
-    await User.insertMany(staff)
+
+    await Promise.all(staff.map(s => upsertUser({ email: s.email }, s)))
     console.log('Staff seeded')
+
+    // Seed admin and citizen test users
+    await upsertUser(
+        { email: 'admin@example.com' },
+        { name: 'Admin User', email: 'admin@example.com', password: 'ChangeMe123!', role: 'admin' }
+    )
+    await upsertUser(
+        { email: 'citizen@example.com' },
+        { name: 'Citizen User', email: 'citizen@example.com', password: 'ChangeMe123!', role: 'citizen' }
+    )
+    console.log('Admin and citizen seeded')
+
     await mongoose.disconnect()
+    console.log('Done')
 }
 
-// run().catch(e => { console.error(e); process.exit(1) })
+if (process.argv[1]?.includes('seed.js')) {
+    run().catch(e => {
+        console.error(e)
+        process.exit(1)
+    })
+}
 
 
