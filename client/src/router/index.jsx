@@ -13,6 +13,7 @@ import ProfileEdit from '../screens/ProfileEdit'
 import ProtectedRoute from '../auth/ProtectedRoute'
 import { useAuth } from '../auth/AuthContext'
 import PlanBanner from '../components/PlanBanner'
+import Billing from '../screens/Billing'
 
 function RoleDashboard() {
   const { user } = useAuth()
@@ -78,6 +79,14 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <ProfileEdit />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/billing',
+    element: (
+      <ProtectedRoute roles={['admin']}>
+        <Billing />
       </ProtectedRoute>
     ),
   }
