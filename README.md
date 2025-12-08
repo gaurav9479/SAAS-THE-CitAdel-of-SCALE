@@ -576,6 +576,40 @@ Developed by **Gaurav Prajapati** for the Circus of Wonders. Built with ❤️ u
 
 ---
 
+## 🚀 Quick Start (New Developers)
+1) **Use Node 20**  
+   ```bash
+   nvm install 20
+   nvm use 20
+   ```
+2) **Clone**  
+   ```bash
+   git clone https://github.com/gaurav9479/SAAS-THE-CitAdel-of-SCALE.git
+   cd SAAS-THE-CitAdel-of-SCALE
+   ```
+3) **Env files**  
+   - `server/.env` (required): `PORT=5050`, `MONGO_URI=<your-uri>`, `JWT_SECRET=<string>` (plus email/redis if used)  
+   - `client/.env` (optional): `VITE_API_BASE_URL=http://localhost:5050`
+4) **Install deps**  
+   ```bash
+   cd server && npm install
+   cd ../client && npm install
+   ```
+5) **Seed sample data** (departments + admin/citizen/staff test users)  
+   ```bash
+   cd ../server
+   npm run seed
+   ```
+6) **Run dev servers** (two terminals)  
+   - Backend: `cd server && npm run dev` (listens on `:5050`)  
+   - Frontend: `cd client && npm run dev` (defaults to `http://localhost:5174/`)
+7) **Test logins** (after seeding)  
+   - Admin: `admin@example.com` / `ChangeMe123!`  
+   - Citizen: `citizen@example.com` / `ChangeMe123!`  
+   - Staff: `rohan.roads@example.com` / `ChangeMe123!` (others seeded too)
+
+---
+
 ## 🧭 Implementation Guide
 
 ### High-level Scope
