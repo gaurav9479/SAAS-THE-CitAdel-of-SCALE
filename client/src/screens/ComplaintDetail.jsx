@@ -11,14 +11,16 @@ export default function ComplaintDetail() {
   const [rating, setRating] = useState(5)
   const [comment, setComment] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
+  const [error, setError] = useState('Complaint not found')
 
   useEffect(() => {
     (async () => {
       try {
         const { data } = await api.get(`/api/complaints/${id}`)
         setComplaint(data.complaint)
-      } catch {
+      } catch (e) {
         setComplaint(null)
+        setError(e?.response?.data?.message || 'Complaint not found')
       } finally {
         setLoading(false)
       }
@@ -44,7 +46,7 @@ export default function ComplaintDetail() {
   }
 
   if (loading) return <div className="p-6">Loading…</div>
-  if (!complaint) return <div className="p-6">Complaint not found</div>
+  if (!complaint) return <div className="p-6">{error}</div>
 
   const canReview = user?.role === 'citizen' && complaint.status === 'RESOLVED' && complaint.createdBy === user?.id
 

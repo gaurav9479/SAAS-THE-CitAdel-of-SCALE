@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Complaint from '../models/Complaint.js';
 import Department from '../models/Department.js';
 import Organization from '../models/Organization.js';
@@ -143,11 +144,22 @@ export async function getAllComplaints(req, res) {
 
 export async function getComplaintDetail(req, res) {
     try {
-        const c = await Complaint.findById(req.params.id).populate('assignedTo', 'name email').populate('assignedDepartmentId', 'name');
+        const { id } = req.params;
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).json({ message: 'Invalid complaint id' });
+        }
+        const c = await Complaint.findById(id)
+            .populate('assignedTo', 'name email')
+            .populate('assignedDepartmentId', 'name')
+            .lean();
         if (!c) return res.status(404).json({ message: 'Not found' });
+        // Optionally restrict citizens to their own complaint
+        if (req.user?.role === 'citizen' && c.createdBy?.toString() !== req.user.id) {
+            return res.status(404).json({ message: 'Not found' });
+        }
         return res.json({ complaint: c });
     } catch (err) {
-        return res.status(500).json({ message: 'Failed to fetch complaint' });
+        return res.status(500).json({ message: 'Failed to fetch complaint', details: err.message });
     }
 }
 
