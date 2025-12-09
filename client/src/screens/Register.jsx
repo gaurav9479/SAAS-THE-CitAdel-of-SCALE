@@ -209,14 +209,13 @@ export default function Register() {
           </button>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Phone Number (optional)</label>
-          <div className="rounded-lg bg-white/90 flex items-center px-3 py-2 focus-within:ring-2 focus-within:ring-emerald-500">
+          <div className="rounded-lg bg-white/90 flex items-center px-3 focus-within:ring-2 focus-within:ring-emerald-500">
             <PhoneInput
               className="phone-input w-full"
               value={phone}
               onChange={setPhone}
               defaultCountry="IN"
-              placeholder="Enter phone number"
+              placeholder="Enter phone number (optional)"
               style={{ width: '100%' }}
               inputStyle={{ color: '#111827', backgroundColor: 'transparent' }}
               inputClassName="!border-0 !outline-none !ring-0 w-full text-gray-900 placeholder-gray-500 bg-transparent px-2 py-1"
