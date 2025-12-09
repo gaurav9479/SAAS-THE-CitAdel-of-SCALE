@@ -216,7 +216,9 @@ export default function Register() {
             onChange={setPhone}
             defaultCountry="IN"
             placeholder="Enter phone number"
-            inputClassName="w-full rounded-lg bg-white/90 text-gray-900 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
+            inputClassName="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
+            countrySelectProps={{ className: 'rounded-lg bg-white/90 text-gray-900 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-500' }}
+            numberInputProps={{ className: 'w-full' }}
           />
           {phone && (
             <div className="text-xs mt-1">
