@@ -155,6 +155,13 @@ export default function Register() {
       }
     }
 
+    if (role !== 'admin') {
+      if (!orgCode || !orgResolved) {
+        setError('Enter a valid organization code and select the resolved org.')
+        return
+      }
+    }
+
     const payload = { name, email, password, role }
     if (orgCode) payload.organizationCode = orgCode
     if (orgName) payload.organizationName = orgName
