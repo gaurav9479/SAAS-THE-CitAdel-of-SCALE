@@ -30,7 +30,9 @@ export async function checkCode(req, res) {
     try {
         const { code } = req.query;
         if (!code) return res.status(400).json({ message: 'Code required' });
-        const existing = await Organization.findOne({ code: code.trim().toUpperCase() });
+        const cleaned = code.trim().toUpperCase();
+        if (cleaned.length < 4) return res.status(400).json({ message: 'Code must be at least 4 characters' });
+        const existing = await Organization.findOne({ code: cleaned });
         return res.json({ available: !existing });
     } catch (e) {
         return res.status(500).json({ message: 'Failed to check code', details: e.message });
