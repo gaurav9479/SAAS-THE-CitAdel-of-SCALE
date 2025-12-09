@@ -2,10 +2,11 @@ import User from '../models/User.js';
 import Organization from '../models/Organization.js';
 import { signToken } from '../utils/jwt.js';
 import { getPlanFeatures } from '../utils/plan.js';
+import { generateOrgCode } from '../utils/orgCode.js';
 
 export async function register(req, res) {
     try {
-        const { name, email, password, role, phone, departmentId, staff, organizationId } = req.body;
+        const { name, email, password, role, phone, departmentId, staff, organizationId, organizationCode, organizationName } = req.body;
         if (!name || !email || !password) {
             return res.status(400).json({ message: 'Missing required fields' });
         }
@@ -13,16 +14,39 @@ export async function register(req, res) {
         if (existing) {
             return res.status(409).json({ message: 'Email already registered' });
         }
-        // default organization: first org in DB
         let org = null;
-        if (organizationId) {
-            org = await Organization.findById(organizationId);
-        }
-        if (!org) {
-            org = await Organization.findOne();
-        }
-        if (!org) {
-            org = await Organization.create({ name: 'Default Org', plan: 'free' });
+
+        // Admin can create or pick org via code; other roles must provide an org code
+        if (role === 'admin') {
+            if (organizationId) {
+                org = await Organization.findById(organizationId);
+                if (!org) return res.status(400).json({ message: 'Organization not found' });
+            } else if (organizationCode) {
+                const code = organizationCode.trim().toUpperCase();
+                const exists = await Organization.findOne({ code });
+                if (exists) return res.status(409).json({ message: 'Organization code already taken' });
+                org = await Organization.create({ name: organizationName || `${name}'s Org`, plan: 'free', code });
+            } else {
+                // autogenerate unique code
+                let code;
+                do {
+                    code = generateOrgCode(8);
+                } while (await Organization.findOne({ code }));
+                org = await Organization.create({ name: organizationName || `${name}'s Org`, plan: 'free', code });
+            }
+        } else {
+            // non-admin: must provide code or existing org id; fallback to default individual org if configured
+            if (organizationCode) {
+                org = await Organization.findOne({ code: organizationCode.trim().toUpperCase() });
+                if (!org) return res.status(400).json({ message: 'Invalid organization code' });
+            } else if (organizationId) {
+                org = await Organization.findById(organizationId);
+                if (!org) return res.status(400).json({ message: 'Organization not found' });
+            } else {
+                // fallback: join default individual org (code: INDIVIDUAL) if it exists
+                org = await Organization.findOne({ code: 'INDIVIDUAL' }) || await Organization.findOne();
+                if (!org) return res.status(400).json({ message: 'Organization code required' });
+            }
         }
 
         const payload = { name, email, password, role, organizationId: org._id };

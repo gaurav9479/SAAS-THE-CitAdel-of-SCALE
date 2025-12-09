@@ -21,9 +21,10 @@ async function run() {
     // Organizations and plans (org-wide)
     await Organization.deleteMany({})
     const orgs = await Organization.create([
-        { name: 'Free Town Org', plan: 'free' },
-        { name: 'Pro City Org', plan: 'god' },
-        { name: 'Titan Metro Org', plan: 'titan' },
+        { name: 'Free Town Org', plan: 'free', code: 'FREETOWN' },
+        { name: 'Pro City Org', plan: 'god', code: 'PROCITY' },
+        { name: 'Titan Metro Org', plan: 'titan', code: 'TITANMET' },
+        { name: 'Individual Org', plan: 'free', code: 'INDIVIDUAL' },
     ])
     const orgByName = Object.fromEntries(orgs.map(o => [o.name, o]))
 

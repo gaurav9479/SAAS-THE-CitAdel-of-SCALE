@@ -1,5 +1,6 @@
 import Organization from '../models/Organization.js';
 import { getPlanFeatures } from '../utils/plan.js';
+import { generateOrgCode } from '../utils/orgCode.js';
 
 export async function getOrganization(req, res) {
     try {
@@ -22,6 +23,29 @@ export async function updatePlan(req, res) {
         return res.json({ organization: { id: org._id, name: org.name, plan: org.plan, features: getPlanFeatures(org.plan) } });
     } catch (e) {
         return res.status(500).json({ message: 'Failed to update plan', details: e.message });
+    }
+}
+
+export async function checkCode(req, res) {
+    try {
+        const { code } = req.query;
+        if (!code) return res.status(400).json({ message: 'Code required' });
+        const existing = await Organization.findOne({ code: code.trim().toUpperCase() });
+        return res.json({ available: !existing });
+    } catch (e) {
+        return res.status(500).json({ message: 'Failed to check code', details: e.message });
+    }
+}
+
+export async function generateCode(req, res) {
+    try {
+        let code;
+        do {
+            code = generateOrgCode(8);
+        } while (await Organization.findOne({ code }));
+        return res.json({ code });
+    } catch (e) {
+        return res.status(500).json({ message: 'Failed to generate code', details: e.message });
     }
 }
 

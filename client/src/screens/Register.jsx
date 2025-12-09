@@ -40,6 +40,8 @@ export default function Register() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [role, setRole] = useState('citizen')
+  const [orgCode, setOrgCode] = useState('')
+  const [orgName, setOrgName] = useState('')
   const [phone, setPhone] = useState('')
   const [departmentId, setDepartmentId] = useState('')
   const [title, setTitle] = useState('')
@@ -122,6 +124,8 @@ export default function Register() {
     }
 
     const payload = { name, email, password, role }
+    if (orgCode) payload.organizationCode = orgCode
+    if (orgName) payload.organizationName = orgName
     if (phone) payload.phone = phone
 
     if (role === 'staff' && departmentId) {
@@ -192,6 +196,15 @@ export default function Register() {
           <option value="staff">Staff</option>
           <option value="admin">Admin</option>
         </select>
+        {role === 'admin' && (
+          <>
+            <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Organization Name" value={orgName} onChange={(e)=>setOrgName(e.target.value)} />
+            <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Organization Code (leave blank to auto-generate)" value={orgCode} onChange={(e)=>setOrgCode(e.target.value.toUpperCase())} />
+          </>
+        )}
+        {role !== 'admin' && (
+          <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Organization Code (from your admin)" value={orgCode} onChange={(e)=>setOrgCode(e.target.value.toUpperCase())} />
+        )}
         {role === 'staff' && (
           <>
             <select className="w-full rounded-lg bg-white/90 text-gray-900 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" value={departmentId} onChange={(e)=>setDepartmentId(e.target.value)}>
