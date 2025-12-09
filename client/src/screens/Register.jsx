@@ -210,16 +210,17 @@ export default function Register() {
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Phone Number (optional)</label>
-          <PhoneInput
-            className="phone-input"
-            value={phone}
-            onChange={setPhone}
-            defaultCountry="IN"
-            placeholder="Enter phone number"
-            inputClassName="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
-            countrySelectProps={{ className: 'rounded-lg bg-white/90 text-gray-900 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-500' }}
-            numberInputProps={{ className: 'w-full' }}
-          />
+          <div className="rounded-lg bg-white/90 flex items-center px-3 py-2 focus-within:ring-2 focus-within:ring-emerald-500">
+            <PhoneInput
+              className="w-full"
+              value={phone}
+              onChange={setPhone}
+              defaultCountry="IN"
+              placeholder="Enter phone number"
+              inputClassName="!border-0 !outline-none !ring-0 w-full text-gray-900 placeholder-gray-500 bg-transparent px-2 py-1"
+              countrySelectProps={{ className: '!border-0 !outline-none !ring-0 bg-transparent text-gray-900 px-2 py-1' }}
+            />
+          </div>
           {phone && (
             <div className="text-xs mt-1">
               <span className={isValidPhone(phone) ? 'text-green-600' : 'text-red-600'}>
