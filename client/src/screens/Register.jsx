@@ -212,7 +212,7 @@ export default function Register() {
           <label className="block text-sm font-medium mb-1">Phone Number (optional)</label>
           <div className="rounded-lg bg-white/90 flex items-center px-3 py-2 focus-within:ring-2 focus-within:ring-emerald-500">
             <PhoneInput
-              className="w-full"
+              className="phone-input w-full"
               value={phone}
               onChange={setPhone}
               defaultCountry="IN"

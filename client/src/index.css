@@ -27,3 +27,21 @@
   .text { @apply text-[#111827] dark:text-white text-[14px] leading-5; }
   .text-fade { @apply text-[#6B7280] dark:text-[#D1D5DB] text-[14px] leading-5; }
 }
+
+/* Phone input styling */
+.phone-input .PhoneInputInput {
+  background: #ffffff;
+  color: #111827;
+  border: 0;
+  outline: none;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 8px;
+}
+.phone-input .PhoneInputCountrySelect {
+  border: 0;
+  background: transparent;
+}
+.phone-input .PhoneInputCountry {
+  border: 0;
+}
