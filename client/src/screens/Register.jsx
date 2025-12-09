@@ -45,6 +45,7 @@ export default function Register() {
   const [orgResolved, setOrgResolved] = useState(null)
   const [orgLookupError, setOrgLookupError] = useState('')
   const [orgLookupLoading, setOrgLookupLoading] = useState(false)
+  const [orgCodeStatus, setOrgCodeStatus] = useState('') // for admin: available/taken
   const [phone, setPhone] = useState('')
   const [departmentId, setDepartmentId] = useState('')
   const [title, setTitle] = useState('')
@@ -102,6 +103,7 @@ export default function Register() {
     if (!orgCode) {
       setOrgResolved(null)
       setOrgLookupError('')
+      setOrgCodeStatus('')
       return
     }
     const controller = new AbortController()
@@ -113,15 +115,18 @@ export default function Register() {
       try {
         const { data } = await api.get(`/api/orgs/public/code/${code}`, { signal: controller.signal })
         setOrgResolved(data.organization)
+        // If admin is typing a code and it resolves, mark as taken
+        if (role === 'admin') setOrgCodeStatus('taken')
       } catch (e) {
         if (controller.signal.aborted) return
         setOrgLookupError(e.response?.data?.message || 'Organization not found')
+        if (role === 'admin') setOrgCodeStatus('available')
       } finally {
         if (!controller.signal.aborted) setOrgLookupLoading(false)
       }
     }, 300)
     return () => { controller.abort(); clearTimeout(timeout); }
-  }, [orgCode])
+  }, [orgCode, role])
 
   const onSubmit = async (e) => {
     e.preventDefault()
@@ -267,7 +272,12 @@ export default function Register() {
         {role === 'admin' && (
           <>
             <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Organization Name" value={orgName} onChange={(e)=>setOrgName(e.target.value)} />
-            <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Organization Code (leave blank to auto-generate)" value={orgCode} onChange={(e)=>setOrgCode(e.target.value.toUpperCase())} />
+            <div className="space-y-1">
+              <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Organization Code (leave blank to auto-generate)" value={orgCode} onChange={(e)=>setOrgCode(e.target.value.toUpperCase())} />
+              {orgCode && orgLookupLoading && <div className="text-sm text-emerald-700">Checking code availability…</div>}
+              {orgCode && orgCodeStatus === 'taken' && <div className="text-sm text-red-600">This code is already taken. Try another.</div>}
+              {orgCode && orgCodeStatus === 'available' && <div className="text-sm text-emerald-700">Code is available.</div>}
+            </div>
           </>
         )}
         {role !== 'admin' && (
