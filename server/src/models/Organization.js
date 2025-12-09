@@ -9,8 +9,6 @@ const organizationSchema = new mongoose.Schema(
     { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } }
 );
 
-organizationSchema.index({ code: 1 }, { unique: true });
-
 export default mongoose.model('Organization', organizationSchema);
 
 
