@@ -42,6 +42,9 @@ export default function Register() {
   const [role, setRole] = useState('citizen')
   const [orgCode, setOrgCode] = useState('')
   const [orgName, setOrgName] = useState('')
+  const [orgResolved, setOrgResolved] = useState(null)
+  const [orgLookupError, setOrgLookupError] = useState('')
+  const [orgLookupLoading, setOrgLookupLoading] = useState(false)
   const [phone, setPhone] = useState('')
   const [departmentId, setDepartmentId] = useState('')
   const [title, setTitle] = useState('')
@@ -94,6 +97,31 @@ export default function Register() {
       setContactEmail(email)
     }
   }, [phone, email, useSameContact, role])
+
+  useEffect(() => {
+    if (!orgCode) {
+      setOrgResolved(null)
+      setOrgLookupError('')
+      return
+    }
+    const controller = new AbortController()
+    setOrgLookupLoading(true)
+    setOrgLookupError('')
+    setOrgResolved(null)
+    const code = orgCode.trim().toUpperCase()
+    const timeout = setTimeout(async () => {
+      try {
+        const { data } = await api.get(`/api/orgs/public/code/${code}`, { signal: controller.signal })
+        setOrgResolved(data.organization)
+      } catch (e) {
+        if (controller.signal.aborted) return
+        setOrgLookupError(e.response?.data?.message || 'Organization not found')
+      } finally {
+        if (!controller.signal.aborted) setOrgLookupLoading(false)
+      }
+    }, 300)
+    return () => { controller.abort(); clearTimeout(timeout); }
+  }, [orgCode])
 
   const onSubmit = async (e) => {
     e.preventDefault()
@@ -243,7 +271,16 @@ export default function Register() {
           </>
         )}
         {role !== 'admin' && (
-          <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Organization Code (from your admin)" value={orgCode} onChange={(e)=>setOrgCode(e.target.value.toUpperCase())} />
+          <div className="space-y-2">
+            <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Organization Code (from your admin)" value={orgCode} onChange={(e)=>setOrgCode(e.target.value.toUpperCase())} />
+            {orgLookupLoading && <div className="text-sm text-emerald-700">Checking organization…</div>}
+            {orgResolved && (
+              <select className="w-full rounded-lg bg-white/90 text-gray-900 px-4 py-3 outline-none border border-emerald-200" disabled value={orgResolved.id}>
+                <option value={orgResolved.id}>{orgResolved.name} ({orgResolved.plan})</option>
+              </select>
+            )}
+            {orgLookupError && <div className="text-sm text-red-600">{orgLookupError}</div>}
+          </div>
         )}
         {role === 'staff' && (
           <>

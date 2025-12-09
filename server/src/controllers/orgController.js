@@ -37,6 +37,18 @@ export async function checkCode(req, res) {
     }
 }
 
+export async function getOrgByCodePublic(req, res) {
+    try {
+        const { code } = req.params;
+        if (!code) return res.status(400).json({ message: 'Code required' });
+        const org = await Organization.findOne({ code: code.trim().toUpperCase() }).select('_id name plan code');
+        if (!org) return res.status(404).json({ message: 'Organization not found' });
+        return res.json({ organization: { id: org._id, name: org.name, plan: org.plan, code: org.code } });
+    } catch (e) {
+        return res.status(500).json({ message: 'Failed to fetch organization', details: e.message });
+    }
+}
+
 export async function generateCode(req, res) {
     try {
         let code;
