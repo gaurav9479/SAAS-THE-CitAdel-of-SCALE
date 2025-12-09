@@ -9,6 +9,9 @@ const UserSchema = new mongoose.Schema(
         role: { type: String, enum: ['citizen', 'staff', 'admin'], default: 'citizen' },
         departmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Department' },
         organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
+        emailVerified: { type: Boolean, default: false },
+        emailOtp: { type: String },
+        emailOtpExpires: { type: Date },
         staff: {
             title: { type: String },
             skills: { type: [String], default: [] },

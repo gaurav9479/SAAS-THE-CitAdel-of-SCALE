@@ -50,14 +50,20 @@ export function AuthProvider({ children }) {
     bootstrap()
   }, [token])
 
-  const login = async (email, password) => {
+  const login = async (email, password, code) => {
     setLoading(true)
     try {
-      const { data } = await api.post('/api/auth/login', { email, password })
-      setUser(data.user)
-      localStorage.setItem('user', JSON.stringify(data.user))
-      setToken(data.token)
-      return { ok: true }
+      const { data } = await api.post('/api/auth/login', { email, password, code })
+      if (data.emailVerificationRequired) {
+        return { ok: false, verify: true, message: data.message }
+      }
+      if (data.user && data.token) {
+        setUser(data.user)
+        localStorage.setItem('user', JSON.stringify(data.user))
+        setToken(data.token)
+        return { ok: true }
+      }
+      return { ok: false, message: 'Login failed' }
     } catch (e) {
       return { ok: false, message: e.response?.data?.message || e.message }
     } finally {
@@ -65,14 +71,33 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const register = async ({ name, email, password, role }) => {
+  const register = async (payload) => {
     setLoading(true)
     try {
-      const { data } = await api.post('/api/auth/register', { name, email, password, role })
-      setUser(data.user)
-      localStorage.setItem('user', JSON.stringify(data.user))
-      setToken(data.token)
-      return { ok: true }
+      const { data } = await api.post('/api/auth/register', payload)
+      if (data.emailVerificationRequired) {
+        return { ok: false, verify: true, message: data.message, email: payload.email }
+      }
+      if (data.user && data.token) {
+        setUser(data.user)
+        localStorage.setItem('user', JSON.stringify(data.user))
+        setToken(data.token)
+        return { ok: true }
+      }
+      return { ok: false, message: 'Registration failed' }
+    } catch (e) {
+      return { ok: false, message: e.response?.data?.message || e.message }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const verifyEmail = async (email, code) => {
+    setLoading(true)
+    try {
+      const { data } = await api.post('/api/otp/verify-email', { email, code })
+      // After verification, force user to login again to obtain token
+      return { ok: true, message: data.message }
     } catch (e) {
       return { ok: false, message: e.response?.data?.message || e.message }
     } finally {
@@ -86,7 +111,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('user')
   }
 
-  const value = useMemo(() => ({ user, token, loading, login, register, logout, bootstrapping, setUser }), [user, token, loading, bootstrapping])
+  const value = useMemo(() => ({ user, token, loading, login, register, verifyEmail, logout, bootstrapping, setUser }), [user, token, loading, bootstrapping])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 

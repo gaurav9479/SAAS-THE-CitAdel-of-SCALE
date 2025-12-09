@@ -3,6 +3,17 @@ import Organization from '../models/Organization.js';
 import { signToken } from '../utils/jwt.js';
 import { getPlanFeatures } from '../utils/plan.js';
 import { generateOrgCode } from '../utils/orgCode.js';
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
+
+function isValidINPhone(phone) {
+    if (!phone) return true; // optional overall, validate if provided
+    const parsed = parsePhoneNumberFromString(phone, 'IN');
+    return !!(parsed && parsed.isValid() && parsed.country === 'IN');
+}
+
+function genOtp() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
 
 export async function register(req, res) {
     try {
@@ -13,6 +24,9 @@ export async function register(req, res) {
         const existing = await User.findOne({ email });
         if (existing) {
             return res.status(409).json({ message: 'Email already registered' });
+        }
+        if (!isValidINPhone(phone)) {
+            return res.status(400).json({ message: 'Invalid Indian phone number. Use +91XXXXXXXXXX' });
         }
         let org = null;
 
@@ -62,12 +76,20 @@ export async function register(req, res) {
             }
             payload.staff = staff;
         }
-        const user = await User.create(payload);
-        const orgFeatures = getPlanFeatures(org.plan);
-        const token = signToken({ id: user._id, role: user.role, name: user.name, organizationId: org._id, plan: org.plan });
+        // Email OTP
+        const otp = genOtp();
+        const otpExpires = new Date(Date.now() + 15 * 60 * 1000);
+        payload.emailOtp = otp;
+        payload.emailOtpExpires = otpExpires;
+        payload.emailVerified = false;
+
+        await User.create(payload);
+        // TODO: send OTP via email provider; for now log
+        console.log(`Email OTP for ${email}: ${otp}`);
+
         return res.status(201).json({
-            token,
-            user: { id: user._id, name: user.name, email: user.email, role: user.role, organization: { id: org._id, name: org.name, plan: org.plan, features: orgFeatures } },
+            emailVerificationRequired: true,
+            message: 'Verify your email with the OTP sent',
         });
     } catch (err) {
         return res.status(500).json({ message: 'Registration failed', details: err.message });
@@ -76,7 +98,7 @@ export async function register(req, res) {
 
 export async function login(req, res) {
     try {
-        const { email, password } = req.body;
+        const { email, password, code } = req.body;
         if (!email || !password) {
             return res.status(400).json({ message: 'Missing email or password' });
         }
@@ -87,6 +109,17 @@ export async function login(req, res) {
         const ok = await user.comparePassword(password);
         if (!ok) {
             return res.status(401).json({ message: 'Invalid credentials' });
+        }
+        if (!user.emailVerified) {
+            // allow inline verify on login
+            if (code && user.emailOtp === code && user.emailOtpExpires && user.emailOtpExpires > new Date()) {
+                user.emailVerified = true;
+                user.emailOtp = undefined;
+                user.emailOtpExpires = undefined;
+                await user.save();
+            } else {
+                return res.status(403).json({ message: 'Email not verified. Provide OTP code to complete login.', emailVerificationRequired: true });
+            }
         }
         const org = user.organizationId ? await Organization.findById(user.organizationId) : await Organization.findOne();
         const orgPlan = org?.plan || 'free';

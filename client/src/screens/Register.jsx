@@ -34,7 +34,7 @@ const val = [
 ]
 
 export default function Register() {
-  const { register, loading } = useAuth()
+  const { register, verifyEmail, loading } = useAuth()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -55,17 +55,16 @@ export default function Register() {
   const [useSameContact, setUseSameContact] = useState(false)
   const [departments, setDepartments] = useState([])
   const [error, setError] = useState('')
+  const [verifyMode, setVerifyMode] = useState(false)
+  const [verifyEmailAddress, setVerifyEmailAddress] = useState('')
+  const [otp, setOtp] = useState('')
   const navigate = useNavigate()
 
   // Phone validation using libphonenumber-js
   const isValidPhone = (phone) => {
     if (!phone) return null
-    try {
-      const phoneNumber = parsePhoneNumber(phone)
-      return phoneNumber ? phoneNumber.isValid() : false
-    } catch {
-      return false
-    }
+    const cleaned = phone.replace(/\s+/g, '')
+    return /^\+?91\d{10}$/.test(cleaned)
   }
 
   const formatPhone = (phone) => {
@@ -144,8 +143,45 @@ export default function Register() {
     }
 
     const res = await register(payload)
-    if (res.ok) navigate('/')
-    else setError(res.message || 'Registration failed')
+    if (res.ok) {
+      navigate('/')
+      return
+    }
+    if (res.verify) {
+      setVerifyMode(true)
+      setVerifyEmailAddress(email)
+      setError('Enter the OTP sent to your email to verify.')
+      return
+    }
+    setError(res.message || 'Registration failed')
+  }
+
+  const onVerify = async (e) => {
+    e.preventDefault()
+    if (!otp || !verifyEmailAddress) {
+      setError('Enter OTP to verify')
+      return
+    }
+    const res = await verifyEmail(verifyEmailAddress, otp)
+    if (res.ok) {
+      setError('Verified! Please log in now.')
+      setVerifyMode(false)
+    } else {
+      setError(res.message || 'Verification failed')
+    }
+  }
+
+  if (verifyMode) {
+    return (
+      <AuthLayout title="Verify your email" subtitle="Enter the OTP sent to your email">
+        <form onSubmit={onVerify} className="space-y-4">
+          {error && <p className="text-red-200 text-sm">{error}</p>}
+          <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Email" type="email" value={verifyEmailAddress} disabled />
+          <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="6-digit OTP" value={otp} onChange={(e)=>setOtp(e.target.value)} />
+          <button disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-medium disabled:opacity-50 transition">{loading? 'Verifying...' : 'Verify email'}</button>
+        </form>
+      </AuthLayout>
+    )
   }
 
   return (
