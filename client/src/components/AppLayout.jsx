@@ -49,7 +49,7 @@ export default function AppLayout() {
           </button>
         </div>
       </aside>
-      <div className="flex-1 h-full flex flex-col overflow-hidden">
+      <div className="flex-1 h-full flex flex-col overflow-hidden min-w-0">
         <header className="md:hidden flex items-center justify-between p-3 bg-white border-b border-gray-200">
           <div className="text-lg font-semibold">CitAdel</div>
           <div className="flex items-center gap-2">
@@ -57,7 +57,7 @@ export default function AppLayout() {
             <Link to="/profile/edit" className="text-sm text-emerald-700 underline">Profile</Link>
           </div>
         </header>
-        <main className="p-4 overflow-y-auto flex-1">
+        <main className="overflow-y-auto flex-1 min-w-0 px-2 md:px-4 lg:px-6 pb-6">
           <Outlet />
         </main>
       </div>
