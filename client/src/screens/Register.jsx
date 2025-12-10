@@ -206,8 +206,13 @@ export default function Register() {
     }
     const res = await verifyEmail(verifyEmailAddress, otp)
     if (res.ok) {
-      setError('Verified! Please log in now.')
-      setVerifyMode(false)
+      // auto-login after successful verification
+      const loginRes = await login(verifyEmailAddress, password)
+      if (loginRes.ok) {
+        navigate('/')
+        return
+      }
+      setError(loginRes.message || 'Verified, but login failed. Please try signing in.')
       setDevOtp('')
     } else {
       setError(res.message || 'Verification failed')
