@@ -4,6 +4,7 @@ import { signToken } from '../utils/jwt.js';
 import { getPlanFeatures } from '../utils/plan.js';
 import { generateOrgCode } from '../utils/orgCode.js';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
+import { sendEmail } from '../utils/email.js';
 
 function isValidINPhone(phone) {
     if (!phone) return true; // optional overall, validate if provided
@@ -84,8 +85,16 @@ export async function register(req, res) {
         payload.emailVerified = false;
 
         await User.create(payload);
-        // TODO: send OTP via email provider; for now log and optionally return in dev
-        console.log(`Email OTP for ${email}: ${otp}`);
+        // Send OTP email (or log in dev)
+        try {
+            await sendEmail({
+                to: email,
+                subject: 'Verify your email',
+                text: `Your verification code is ${otp}. It expires in 15 minutes.`,
+            });
+        } catch (e) {
+            console.log(`Email OTP for ${email}: ${otp} (email send failed: ${e.message})`);
+        }
 
         return res.status(201).json({
             emailVerificationRequired: true,
