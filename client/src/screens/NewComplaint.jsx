@@ -224,7 +224,6 @@ export default function NewComplaint() {
               onChange={setReporterPhone}
               defaultCountry="IN"
               placeholder="Phone for updates"
-              inputClassName="w-full border rounded p-2"
             />
             {reporterPhone && (
               <div className="text-xs mt-1">

@@ -267,7 +267,6 @@ export default function Register() {
               placeholder="Enter phone number (optional)"
               style={{ width: '100%' }}
               inputStyle={{ color: '#111827', backgroundColor: 'transparent' }}
-              inputClassName="!border-0 !outline-none !ring-0 w-full text-gray-900 placeholder-gray-500 bg-transparent px-2 py-1"
               countrySelectProps={{ className: '!border-0 !outline-none !ring-0 bg-transparent text-gray-900 px-2 py-1' }}
             />
           </div>
@@ -370,7 +369,6 @@ export default function Register() {
                 onChange={setContactPhone}
                 defaultCountry="IN"
                 placeholder="Phone for citizens to contact you"
-                inputClassName="w-full rounded-lg bg-white/90 text-gray-900 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
                 disabled={useSameContact}
               />
               {contactPhone && (

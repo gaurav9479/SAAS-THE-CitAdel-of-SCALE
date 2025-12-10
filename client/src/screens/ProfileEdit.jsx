@@ -158,7 +158,6 @@ export default function ProfileEdit() {
               onChange={(value) => handleChange('phone', value)}
               defaultCountry="IN"
               placeholder="Enter phone number"
-              inputClassName="w-full border rounded p-2"
             />
             {formData.phone && (
               <div className="text-xs mt-1">
@@ -259,7 +258,6 @@ export default function ProfileEdit() {
                 onChange={(value) => handleChange('contactPhone', value)}
                 defaultCountry="IN"
                 placeholder="Phone for citizens to contact you"
-                inputClassName="w-full border rounded p-2"
               />
               {formData.contactPhone && (
                 <div className="text-xs mt-1">
