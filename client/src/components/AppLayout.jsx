@@ -16,7 +16,7 @@ export default function AppLayout() {
   ].filter(item => item.roles.includes(role))
 
   return (
-    <div className="h-screen flex bg-gray-50 overflow-hidden">
+    <div className="h-screen w-screen flex bg-gray-50 overflow-hidden">
       <aside className="w-64 shrink-0 bg-white border-r border-gray-200 hidden md:flex flex-col h-full">
         <div className="p-4 border-b border-gray-200">
           <div className="text-lg font-semibold">CitAdel</div>
