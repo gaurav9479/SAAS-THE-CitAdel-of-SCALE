@@ -35,4 +35,14 @@ export function getPlanFeatures(plan = 'free') {
     return PLAN_FEATURES[plan] || PLAN_FEATURES.free;
 }
 
+const PLAN_LIMITS = {
+    free: { maxStaff: 10, maxCitizens: 200 },
+    god: { maxStaff: 200, maxCitizens: 5000 },
+    titan: { maxStaff: 1000, maxCitizens: 20000 },
+};
+
+export function getPlanLimits(plan = 'free') {
+    return PLAN_LIMITS[plan] || PLAN_LIMITS.free;
+}
+
 

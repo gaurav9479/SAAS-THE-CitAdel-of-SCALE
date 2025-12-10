@@ -3,14 +3,42 @@ import client from '../utils/redis.js';
 
 export async function listUsers(req, res) {
     try {
-        const { role, departmentId } = req.query;
-        const filter = {};
+        const { role, departmentId, status } = req.query;
+        const filter = { organizationId: req.user.organizationId };
         if (role) filter.role = role;
         if (departmentId) filter.departmentId = departmentId;
-        const users = await User.find(filter).select('_id name email role departmentId staff ratings');
+        if (status) filter.status = status;
+        const users = await User.find(filter).select('_id name email role status departmentId staff ratings organizationId createdAt');
         return res.json({ users });
     } catch (e) {
         return res.status(500).json({ message: 'Failed to list users', details: e.message });
+    }
+}
+
+export async function orgSummary(req, res) {
+    try {
+        const orgId = req.user.organizationId;
+        const [staffCount, citizenCount, pendingCount] = await Promise.all([
+            User.countDocuments({ organizationId: orgId, role: 'staff', status: 'active' }),
+            User.countDocuments({ organizationId: orgId, role: 'citizen', status: 'active' }),
+            User.countDocuments({ organizationId: orgId, status: 'pending' }),
+        ]);
+        return res.json({ staffCount, citizenCount, pendingCount });
+    } catch (e) {
+        return res.status(500).json({ message: 'Failed to fetch org summary', details: e.message });
+    }
+}
+
+export async function approveUser(req, res) {
+    try {
+        const { id } = req.params;
+        const user = await User.findOne({ _id: id, organizationId: req.user.organizationId });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        user.status = 'active';
+        await user.save();
+        return res.json({ user });
+    } catch (e) {
+        return res.status(500).json({ message: 'Failed to approve user', details: e.message });
     }
 }
 

@@ -1,7 +1,7 @@
 import User from '../models/User.js';
 import Organization from '../models/Organization.js';
 import { signToken } from '../utils/jwt.js';
-import { getPlanFeatures } from '../utils/plan.js';
+import { getPlanFeatures, getPlanLimits } from '../utils/plan.js';
 import { generateOrgCode } from '../utils/orgCode.js';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import { sendEmail } from '../utils/email.js';
@@ -64,6 +64,7 @@ export async function register(req, res) {
             }
         }
 
+        const limits = getPlanLimits(org.plan);
         const payload = { name, email, password, role, organizationId: org._id };
         if (phone) payload.profile = { phone };
         if (departmentId) payload.departmentId = departmentId;
@@ -77,6 +78,16 @@ export async function register(req, res) {
             }
             payload.staff = staff;
         }
+        // Enforce seat limits for staff/citizen
+        if (role === 'staff' || role === 'citizen') {
+            const isStaff = role === 'staff';
+            const cap = isStaff ? limits.maxStaff : limits.maxCitizens;
+            const current = await User.countDocuments({ organizationId: org._id, role });
+            if (cap && current >= cap) {
+                payload.status = 'pending';
+            }
+        }
+
         // Email OTP
         const otp = genOtp();
         const otpExpires = new Date(Date.now() + 15 * 60 * 1000);
@@ -115,6 +126,9 @@ export async function login(req, res) {
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(401).json({ message: 'Invalid credentials' });
+        }
+        if (user.status === 'pending') {
+            return res.status(403).json({ message: 'Account pending approval by admin' });
         }
         const ok = await user.comparePassword(password);
         if (!ok) {
