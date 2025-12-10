@@ -76,7 +76,7 @@ export function AuthProvider({ children }) {
     try {
       const { data } = await api.post('/api/auth/register', payload)
       if (data.emailVerificationRequired) {
-        return { ok: false, verify: true, message: data.message, email: payload.email }
+        return { ok: false, verify: true, message: data.message, email: payload.email, otp: data.otp }
       }
       if (data.user && data.token) {
         setUser(data.user)

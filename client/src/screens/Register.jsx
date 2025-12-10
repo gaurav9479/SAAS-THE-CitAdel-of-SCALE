@@ -46,6 +46,7 @@ export default function Register() {
   const [orgLookupError, setOrgLookupError] = useState('')
   const [orgLookupLoading, setOrgLookupLoading] = useState(false)
   const [orgCodeStatus, setOrgCodeStatus] = useState('') // for admin: available/taken
+  const [devOtp, setDevOtp] = useState('')
   const [phone, setPhone] = useState('')
   const [departmentId, setDepartmentId] = useState('')
   const [title, setTitle] = useState('')
@@ -191,6 +192,7 @@ export default function Register() {
       setVerifyMode(true)
       setVerifyEmailAddress(email)
       setError('Enter the OTP sent to your email to verify.')
+      if (res.otp) setDevOtp(res.otp)
       return
     }
     setError(res.message || 'Registration failed')
@@ -206,6 +208,7 @@ export default function Register() {
     if (res.ok) {
       setError('Verified! Please log in now.')
       setVerifyMode(false)
+      setDevOtp('')
     } else {
       setError(res.message || 'Verification failed')
     }
@@ -216,6 +219,7 @@ export default function Register() {
       <AuthLayout title="Verify your email" subtitle="Enter the OTP sent to your email">
         <form onSubmit={onVerify} className="space-y-4">
           {error && <p className="text-red-200 text-sm">{error}</p>}
+          {devOtp && <p className="text-sm text-emerald-100">Dev OTP (for demo): {devOtp}</p>}
           <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Email" type="email" value={verifyEmailAddress} disabled />
           <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="6-digit OTP" value={otp} onChange={(e)=>setOtp(e.target.value)} />
           <button disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-medium disabled:opacity-50 transition">{loading? 'Verifying...' : 'Verify email'}</button>

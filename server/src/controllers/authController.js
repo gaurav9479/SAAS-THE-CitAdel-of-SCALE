@@ -84,12 +84,13 @@ export async function register(req, res) {
         payload.emailVerified = false;
 
         await User.create(payload);
-        // TODO: send OTP via email provider; for now log
+        // TODO: send OTP via email provider; for now log and optionally return in dev
         console.log(`Email OTP for ${email}: ${otp}`);
 
         return res.status(201).json({
             emailVerificationRequired: true,
             message: 'Verify your email with the OTP sent',
+            otp: process.env.DEV_RETURN_OTP === 'true' ? otp : undefined,
         });
     } catch (err) {
         return res.status(500).json({ message: 'Registration failed', details: err.message });
