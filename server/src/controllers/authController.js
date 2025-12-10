@@ -135,7 +135,18 @@ export async function login(req, res) {
         const orgPlan = org?.plan || 'free';
         const orgFeatures = getPlanFeatures(orgPlan);
         const token = signToken({ id: user._id, role: user.role, name: user.name, organizationId: org?._id, plan: orgPlan });
-        return res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role, organization: org ? { id: org._id, name: org.name, plan: orgPlan, features: orgFeatures } : undefined } });
+        return res.json({
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                organization: org
+                    ? { id: org._id, name: org.name, code: org.code, plan: orgPlan, features: orgFeatures }
+                    : undefined
+            }
+        });
     } catch (err) {
         return res.status(500).json({ message: 'Login failed', details: err.message });
     }
@@ -151,7 +162,17 @@ export async function me(req, res) {
         const org = user.organizationId ? await Organization.findById(user.organizationId) : await Organization.findOne();
         const orgPlan = org?.plan || 'free';
         const orgFeatures = getPlanFeatures(orgPlan);
-        return res.json({ user: { id: user._id, name: user.name, email: user.email, role: user.role, organization: org ? { id: org._id, name: org.name, plan: orgPlan, features: orgFeatures } : undefined } });
+        return res.json({
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                organization: org
+                    ? { id: org._id, name: org.name, code: org.code, plan: orgPlan, features: orgFeatures }
+                    : undefined
+            }
+        });
     } catch (err) {
         return res.status(500).json({ message: 'Failed to fetch current user', details: err.message });
     }
