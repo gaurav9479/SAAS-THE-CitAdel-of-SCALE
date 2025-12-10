@@ -16,8 +16,8 @@ export default function AppLayout() {
   ].filter(item => item.roles.includes(role))
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
-      <aside className="w-64 shrink-0 bg-white border-r border-gray-200 hidden md:flex flex-col">
+    <div className="h-screen flex bg-gray-50 overflow-hidden">
+      <aside className="w-64 shrink-0 bg-white border-r border-gray-200 hidden md:flex flex-col h-full">
         <div className="p-4 border-b border-gray-200">
           <div className="text-lg font-semibold">CitAdel</div>
           <div className="text-sm text-gray-600 truncate">{user?.name}</div>
@@ -49,7 +49,7 @@ export default function AppLayout() {
           </button>
         </div>
       </aside>
-      <div className="flex-1">
+      <div className="flex-1 h-full flex flex-col overflow-hidden">
         <header className="md:hidden flex items-center justify-between p-3 bg-white border-b border-gray-200">
           <div className="text-lg font-semibold">CitAdel</div>
           <div className="flex items-center gap-2">
@@ -57,7 +57,7 @@ export default function AppLayout() {
             <Link to="/profile/edit" className="text-sm text-emerald-700 underline">Profile</Link>
           </div>
         </header>
-        <main className="p-4">
+        <main className="p-4 overflow-y-auto flex-1">
           <Outlet />
         </main>
       </div>
