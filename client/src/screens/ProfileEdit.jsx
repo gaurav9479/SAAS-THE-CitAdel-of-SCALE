@@ -11,6 +11,7 @@ export default function ProfileEdit() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [copied, setCopied] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -116,11 +117,21 @@ export default function ProfileEdit() {
             </code>
             <button
               type="button"
-              onClick={() => { if (user.organization.code) navigator.clipboard.writeText(user.organization.code) }}
-              className="px-2 py-1 rounded bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 disabled:opacity-60"
+              onClick={() => {
+                if (user.organization.code) {
+                  navigator.clipboard.writeText(user.organization.code)
+                  setCopied(true)
+                  setTimeout(() => setCopied(false), 1500)
+                }
+              }}
+              className={`px-2 py-1 rounded text-xs font-semibold transition ${
+                copied
+                  ? 'bg-emerald-700 text-white scale-95'
+                  : 'bg-emerald-600 text-white hover:bg-emerald-700'
+              } disabled:opacity-60`}
               disabled={!user.organization.code}
             >
-              Copy
+              {copied ? 'Copied!' : 'Copy'}
             </button>
             <span className="text-xs text-emerald-700">Give this code to staff/citizens to join your org.</span>
           </div>
