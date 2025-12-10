@@ -4,11 +4,18 @@ import { useAuth } from '../auth/AuthContext'
 
 export default function People() {
   const { user } = useAuth()
-  const [summary, setSummary] = useState({ staffCount: 0, citizenCount: 0, pendingCount: 0 })
-  const [pending, setPending] = useState([])
-  const [staff, setStaff] = useState([])
-  const [citizens, setCitizens] = useState([])
-  const [loading, setLoading] = useState(true)
+  const cached = (() => {
+    try {
+      const raw = sessionStorage.getItem('people-cache')
+      return raw ? JSON.parse(raw) : null
+    } catch { return null }
+  })()
+
+  const [summary, setSummary] = useState(cached?.summary || { staffCount: 0, citizenCount: 0, pendingCount: 0 })
+  const [pending, setPending] = useState(cached?.pending || [])
+  const [staff, setStaff] = useState(cached?.staff || [])
+  const [citizens, setCitizens] = useState(cached?.citizens || [])
+  const [loading, setLoading] = useState(!cached)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -32,6 +39,12 @@ export default function People() {
     }
     load()
   }, [])
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('people-cache', JSON.stringify({ summary, pending, staff, citizens }))
+    } catch {}
+  }, [summary, pending, staff, citizens])
 
   const approve = async (id) => {
     try {

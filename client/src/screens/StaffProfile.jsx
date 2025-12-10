@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import api from '../api/client'
 
 export default function StaffProfile() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [staff, setStaff] = useState(null)
   const [reviews, setReviews] = useState([])
   const [complaints, setComplaints] = useState([])
@@ -35,6 +36,7 @@ export default function StaffProfile() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <button onClick={() => navigate(-1)} className="text-sm text-emerald-700 underline">← Back</button>
       <h1 className="text-2xl font-semibold">{staff.name}</h1>
       <div className="bg-white rounded-xl p-4 shadow space-y-2">
         <div><span className="font-medium">Email:</span> {staff.email}</div>
