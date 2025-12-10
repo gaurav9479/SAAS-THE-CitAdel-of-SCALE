@@ -7,15 +7,25 @@ export default function Login() {
   const { login, loading } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [otp, setOtp] = useState('')
+  const [needOtp, setNeedOtp] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
   const onSubmit = async (e) => {
     e.preventDefault()
-    const res = await login(email, password)
-    if (res.ok) navigate('/')
-    else setError(res.message || 'Login failed')
+    const res = await login(email, password, otp)
+    if (res.ok) {
+      setNeedOtp(false)
+      setOtp('')
+      navigate('/')
+    } else {
+      if (res.verify) {
+        setNeedOtp(true)
+      }
+      setError(res.message || 'Login failed')
+    }
   }
 
   return (
@@ -41,6 +51,15 @@ export default function Login() {
             {showPassword ? 'Hide' : 'Show'}
           </button>
         </div>
+        {needOtp && (
+          <input
+            autoComplete="one-time-code"
+            className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
+            placeholder="Email OTP code"
+            value={otp}
+            onChange={(e)=>setOtp(e.target.value)}
+          />
+        )}
         <button disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-medium disabled:opacity-50 transition">{loading? 'Signing in...' : 'Sign in'}</button>
         <p className="text-white/80 text-sm">No account? <Link to="/register" className="underline">Register</Link></p>
       </form>
