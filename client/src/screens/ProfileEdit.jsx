@@ -107,6 +107,15 @@ export default function ProfileEdit() {
     <div className="p-6 max-w-2xl mx-auto space-y-6">
       <h1 className="text-2xl font-semibold">Edit Profile</h1>
       {error && <p className="text-red-600 text-sm">{error}</p>}
+      {user.role === 'admin' && user.organization && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-sm text-emerald-900">
+          <div className="font-semibold text-emerald-800">Share your organization code</div>
+          <div className="mt-1 flex items-center gap-2">
+            <code className="px-2 py-1 rounded bg-white border border-emerald-200 text-emerald-800">{user.organization.code || 'N/A'}</code>
+            <span className="text-xs text-emerald-700">Give this code to staff/citizens to join your org.</span>
+          </div>
+        </div>
+      )}
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="bg-white rounded-xl p-4 shadow space-y-4">
