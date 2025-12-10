@@ -16,6 +16,7 @@ import PlanBanner from '../components/PlanBanner'
 import PlanBadge from '../components/PlanBadge'
 import Billing from '../screens/Billing'
 import People from '../screens/People'
+import AppLayout from '../components/AppLayout'
 
 function RoleDashboard() {
   const { user } = useAuth()
@@ -47,66 +48,20 @@ const router = createBrowserRouter([
     path: '/',
     element: (
       <ProtectedRoute>
-        <RoleDashboard />
+        <AppLayout />
       </ProtectedRoute>
     ),
+    children: [
+      { index: true, element: <RoleDashboard /> },
+      { path: 'complaints/new', element: <ProtectedRoute roles={['citizen','admin','staff']}><NewComplaint /></ProtectedRoute> },
+      { path: 'departments', element: <ProtectedRoute><Departments /></ProtectedRoute> },
+      { path: 'complaints/:id', element: <ProtectedRoute><ComplaintDetail /></ProtectedRoute> },
+      { path: 'staff/:id', element: <ProtectedRoute><StaffProfile /></ProtectedRoute> },
+      { path: 'profile/edit', element: <ProtectedRoute><ProfileEdit /></ProtectedRoute> },
+      { path: 'people', element: <ProtectedRoute roles={['admin']}><People /></ProtectedRoute> },
+      { path: 'billing', element: <ProtectedRoute roles={['admin']}><Billing /></ProtectedRoute> },
+    ]
   },
-  {
-    path: '/complaints/new',
-    element: (
-      <ProtectedRoute roles={['citizen','admin','staff']}>
-        <NewComplaint />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: '/departments',
-    element: (
-      <ProtectedRoute>
-        <Departments />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: '/complaints/:id',
-    element: (
-      <ProtectedRoute>
-        <ComplaintDetail />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: '/staff/:id',
-    element: (
-      <ProtectedRoute>
-        <StaffProfile />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: '/profile/edit',
-    element: (
-      <ProtectedRoute>
-        <ProfileEdit />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: '/people',
-    element: (
-      <ProtectedRoute roles={['admin']}>
-        <People />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: '/billing',
-    element: (
-      <ProtectedRoute roles={['admin']}>
-        <Billing />
-      </ProtectedRoute>
-    ),
-  }
 ])
 
 export default function AppRouter() {
