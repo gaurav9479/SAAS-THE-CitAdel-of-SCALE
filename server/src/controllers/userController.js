@@ -1,4 +1,6 @@
 import User from '../models/User.js';
+import Organization from '../models/Organization.js';
+import { getPlanLimits } from '../utils/plan.js';
 import client from '../utils/redis.js';
 
 export async function listUsers(req, res) {
@@ -18,12 +20,14 @@ export async function listUsers(req, res) {
 export async function orgSummary(req, res) {
     try {
         const orgId = req.user.organizationId;
+        const org = await Organization.findById(orgId);
+        const limits = getPlanLimits(org?.plan || 'free');
         const [staffCount, citizenCount, pendingCount] = await Promise.all([
             User.countDocuments({ organizationId: orgId, role: 'staff', status: 'active' }),
             User.countDocuments({ organizationId: orgId, role: 'citizen', status: 'active' }),
             User.countDocuments({ organizationId: orgId, status: 'pending' }),
         ]);
-        return res.json({ staffCount, citizenCount, pendingCount });
+        return res.json({ staffCount, citizenCount, pendingCount, maxStaff: limits.maxStaff || null, maxCitizens: limits.maxCitizens || null, plan: org?.plan || 'free' });
     } catch (e) {
         return res.status(500).json({ message: 'Failed to fetch org summary', details: e.message });
     }
@@ -34,11 +38,40 @@ export async function approveUser(req, res) {
         const { id } = req.params;
         const user = await User.findOne({ _id: id, organizationId: req.user.organizationId });
         if (!user) return res.status(404).json({ message: 'User not found' });
+
+        // Enforce seat limits on approval
+        const org = await Organization.findById(req.user.organizationId);
+        const limits = getPlanLimits(org?.plan || 'free');
+        if (user.role === 'staff' && limits.maxStaff) {
+            const activeStaff = await User.countDocuments({ organizationId: org._id, role: 'staff', status: 'active' });
+            if (activeStaff >= limits.maxStaff) {
+                return res.status(400).json({ message: 'Seat limit reached for staff. Upgrade plan or free seats.' });
+            }
+        }
+        if (user.role === 'citizen' && limits.maxCitizens) {
+            const activeCitizens = await User.countDocuments({ organizationId: org._id, role: 'citizen', status: 'active' });
+            if (activeCitizens >= limits.maxCitizens) {
+                return res.status(400).json({ message: 'Seat limit reached for citizens. Upgrade plan or free seats.' });
+            }
+        }
+
         user.status = 'active';
         await user.save();
         return res.json({ user });
     } catch (e) {
         return res.status(500).json({ message: 'Failed to approve user', details: e.message });
+    }
+}
+
+export async function rejectUser(req, res) {
+    try {
+        const { id } = req.params;
+        const user = await User.findOne({ _id: id, organizationId: req.user.organizationId, status: 'pending' });
+        if (!user) return res.status(404).json({ message: 'User not found or not pending' });
+        await user.deleteOne();
+        return res.json({ message: 'User rejected and removed' });
+    } catch (e) {
+        return res.status(500).json({ message: 'Failed to reject user', details: e.message });
     }
 }
 

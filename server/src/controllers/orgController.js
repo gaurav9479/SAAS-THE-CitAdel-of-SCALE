@@ -63,4 +63,24 @@ export async function generateCode(req, res) {
     }
 }
 
+export async function rotateOrgCode(req, res) {
+    try {
+        const orgId = req.params.id;
+        const org = await Organization.findById(orgId);
+        if (!org) return res.status(404).json({ message: 'Organization not found' });
+
+        let code;
+        do {
+            code = generateOrgCode(8);
+        } while (await Organization.findOne({ code }));
+
+        org.code = code;
+        await org.save();
+
+        return res.json({ organization: { id: org._id, name: org.name, code: org.code, plan: org.plan } });
+    } catch (e) {
+        return res.status(500).json({ message: 'Failed to rotate code', details: e.message });
+    }
+}
+
 

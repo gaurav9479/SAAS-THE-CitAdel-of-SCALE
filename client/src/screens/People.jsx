@@ -17,6 +17,7 @@ export default function People() {
   const [citizens, setCitizens] = useState(cached?.citizens || [])
   const [loading, setLoading] = useState(!cached)
   const [error, setError] = useState('')
+  const [rotating, setRotating] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -56,20 +57,63 @@ export default function People() {
     }
   }
 
+  const reject = async (id) => {
+    try {
+      await api.delete(`/api/users/${id}/reject`)
+      setPending(prev => prev.filter(u => u._id !== id))
+      setSummary(prev => ({ ...prev, pendingCount: Math.max(0, prev.pendingCount - 1) }))
+    } catch (e) {
+      setError(e.response?.data?.message || 'Failed to reject user')
+    }
+  }
+
+  const rotateCode = async () => {
+    if (!user?.organization?.id) return
+    setRotating(true)
+    setError('')
+    try {
+      const { data } = await api.patch(`/api/orgs/${user.organization.id}/rotate-code`)
+      const updatedUser = { ...user, organization: { ...user.organization, code: data.organization.code } }
+      localStorage.setItem('user', JSON.stringify(updatedUser))
+      sessionStorage.removeItem('people-cache')
+      window.location.reload()
+    } catch (e) {
+      setError(e.response?.data?.message || 'Failed to rotate code')
+    } finally {
+      setRotating(false)
+    }
+  }
+
   if (!user || user.role !== 'admin') return <div className="p-6">Forbidden</div>
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-semibold">People</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold">People</h1>
+        <div className="flex items-center gap-2">
+          {user?.organization?.code && (
+            <div className="text-sm text-gray-600">
+              Org Code: <code className="px-2 py-1 bg-gray-100 rounded border">{user.organization.code}</code>
+            </div>
+          )}
+          <button
+            onClick={rotateCode}
+            disabled={rotating}
+            className="px-3 py-2 text-sm bg-white border rounded hover:bg-gray-50 disabled:opacity-60"
+          >
+            {rotating ? 'Rotating…' : 'Rotate code'}
+          </button>
+        </div>
+      </div>
       {error && <p className="text-red-600 text-sm">{error}</p>}
       <div className="grid grid-cols-3 gap-4">
         <div className="rounded-lg border p-4 bg-white">
           <div className="text-sm text-gray-600">Staff</div>
-          <div className="text-2xl font-bold">{summary.staffCount}</div>
+          <div className="text-2xl font-bold">{summary.staffCount}{summary.maxStaff ? ` / ${summary.maxStaff}` : ''}</div>
         </div>
         <div className="rounded-lg border p-4 bg-white">
           <div className="text-sm text-gray-600">Citizens</div>
-          <div className="text-2xl font-bold">{summary.citizenCount}</div>
+          <div className="text-2xl font-bold">{summary.citizenCount}{summary.maxCitizens ? ` / ${summary.maxCitizens}` : ''}</div>
         </div>
         <div className="rounded-lg border p-4 bg-white">
           <div className="text-sm text-gray-600">Pending</div>
@@ -96,7 +140,10 @@ export default function People() {
                   <td className="py-1">{u.email}</td>
                   <td className="py-1 capitalize">{u.role}</td>
                   <td className="py-1">
-                    <button onClick={() => approve(u._id)} className="px-3 py-1 bg-emerald-600 text-white rounded text-xs">Approve</button>
+                    <div className="flex gap-2">
+                      <button onClick={() => approve(u._id)} className="px-3 py-1 bg-emerald-600 text-white rounded text-xs">Approve</button>
+                      <button onClick={() => reject(u._id)} className="px-3 py-1 bg-red-500 text-white rounded text-xs">Reject</button>
+                    </div>
                   </td>
                 </tr>
               ))}
