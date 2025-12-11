@@ -48,6 +48,12 @@ export default function Register() {
   const [orgCodeStatus, setOrgCodeStatus] = useState('') // for admin: available/taken
   const [devOtp, setDevOtp] = useState('')
   const [phone, setPhone] = useState('')
+  const [addressLine1, setAddressLine1] = useState('')
+  const [addressCity, setAddressCity] = useState('')
+  const [addressState, setAddressState] = useState('')
+  const [addressZip, setAddressZip] = useState('')
+  const [defaultLat, setDefaultLat] = useState(null)
+  const [defaultLng, setDefaultLng] = useState(null)
   const [departmentId, setDepartmentId] = useState('')
   const [title, setTitle] = useState('')
   const [skills, setSkills] = useState('')
@@ -167,6 +173,17 @@ export default function Register() {
     if (orgCode) payload.organizationCode = orgCode
     if (orgName) payload.organizationName = orgName
     if (phone) payload.phone = phone
+    if (addressLine1 || addressCity || addressState || addressZip) {
+      payload.address = {
+        line1: addressLine1,
+        city: addressCity,
+        state: addressState,
+        zip: addressZip,
+      }
+    }
+    if (defaultLat != null && defaultLng != null && !Number.isNaN(defaultLat) && !Number.isNaN(defaultLng)) {
+      payload.defaultLocation = { lat: Number(defaultLat), lng: Number(defaultLng) }
+    }
 
     if (role === 'staff' && departmentId) {
       payload.departmentId = departmentId
@@ -278,6 +295,49 @@ export default function Register() {
               {isValidPhone(phone) && <span className="text-fade ml-2">({formatPhone(phone)})</span>}
             </div>
           )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Address line (optional)" value={addressLine1} onChange={(e)=>setAddressLine1(e.target.value)} />
+          <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="City (optional)" value={addressCity} onChange={(e)=>setAddressCity(e.target.value)} />
+          <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="State (optional)" value={addressState} onChange={(e)=>setAddressState(e.target.value)} />
+          <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="ZIP/Postal (optional)" value={addressZip} onChange={(e)=>setAddressZip(e.target.value)} />
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium">Default location (optional)</label>
+            <span className="text-xs text-fade">Used to prefill complaints & nearby matching</span>
+          </div>
+          <div className="flex flex-wrap gap-2 text-sm text-fade">
+            <button
+              type="button"
+              onClick={() => {
+                if ('geolocation' in navigator) {
+                  navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                      setDefaultLat(pos.coords.latitude)
+                      setDefaultLng(pos.coords.longitude)
+                    },
+                    () => setError('Could not fetch your location, please allow permission or pick on map')
+                  )
+                } else {
+                  setError('Geolocation not supported in this browser')
+                }
+              }}
+              className="px-3 py-2 bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-200 text-sm"
+            >
+              Use my location
+            </button>
+            {(defaultLat != null && defaultLng != null) && (
+              <span>Lat: {Number(defaultLat).toFixed(5)} • Lng: {Number(defaultLng).toFixed(5)}</span>
+            )}
+          </div>
+          <MapPicker
+            lat={defaultLat ?? 28.6139}
+            lng={defaultLng ?? 77.2090}
+            onLocationChange={(lat, lng) => { setDefaultLat(lat); setDefaultLng(lng) }}
+          />
         </div>
         <select className="w-full rounded-lg bg-white/90 text-gray-900 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" value={role} onChange={(e)=>setRole(e.target.value)}>
           <option value="citizen">Citizen</option>

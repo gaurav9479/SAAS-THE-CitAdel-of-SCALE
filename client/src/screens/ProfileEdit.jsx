@@ -15,6 +15,8 @@ export default function ProfileEdit() {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
+    address: { line1: '', city: '', state: '', zip: '' },
+    defaultLocation: { lat: null, lng: null },
     workArea: { city: '', zones: [] },
     isWorkingToday: true,
     contactPhone: '',
@@ -41,6 +43,16 @@ export default function ProfileEdit() {
       setFormData({
         name: user.name || '',
         phone: user.profile?.phone || '',
+        address: {
+          line1: user.profile?.address?.line1 || '',
+          city: user.profile?.address?.city || '',
+          state: user.profile?.address?.state || '',
+          zip: user.profile?.address?.zip || '',
+        },
+        defaultLocation: {
+          lat: user.profile?.defaultLocation?.lat ?? null,
+          lng: user.profile?.defaultLocation?.lng ?? null,
+        },
         workArea: {
           city: user.staff?.workArea?.city || '',
           zones: user.staff?.workArea?.zones || [],
@@ -166,6 +178,80 @@ export default function ProfileEdit() {
                 </span>
               </div>
             )}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-4 shadow space-y-4">
+          <h2 className="text-lg font-medium">Address (optional)</h2>
+          <input
+            className="w-full border rounded p-2"
+            placeholder="Address line"
+            value={formData.address.line1}
+            onChange={(e) => handleChange('address.line1', e.target.value)}
+          />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <input
+              className="w-full border rounded p-2"
+              placeholder="City"
+              value={formData.address.city}
+              onChange={(e) => handleChange('address.city', e.target.value)}
+            />
+            <input
+              className="w-full border rounded p-2"
+              placeholder="State"
+              value={formData.address.state}
+              onChange={(e) => handleChange('address.state', e.target.value)}
+            />
+            <input
+              className="w-full border rounded p-2"
+              placeholder="ZIP/Postal"
+              value={formData.address.zip}
+              onChange={(e) => handleChange('address.zip', e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium">Default location (optional)</label>
+              <span className="text-xs text-fade">Used to prefill complaints & nearby matching</span>
+            </div>
+            <div className="flex flex-wrap gap-2 text-sm text-fade">
+              <button
+                type="button"
+                onClick={() => {
+                  if ('geolocation' in navigator) {
+                    navigator.geolocation.getCurrentPosition(
+                      (pos) => {
+                        handleChange('defaultLocation.lat', pos.coords.latitude)
+                        handleChange('defaultLocation.lng', pos.coords.longitude)
+                      },
+                      () => setError('Could not fetch your location, please allow permission or pick on map')
+                    )
+                  } else {
+                    setError('Geolocation not supported in this browser')
+                  }
+                }}
+                className="px-3 py-2 bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-200 text-sm"
+              >
+                Use my location
+              </button>
+              {(formData.defaultLocation.lat != null && formData.defaultLocation.lng != null) && (
+                <span>Lat: {Number(formData.defaultLocation.lat).toFixed(5)} • Lng: {Number(formData.defaultLocation.lng).toFixed(5)}</span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                className="w-full border rounded p-2 text-sm"
+                placeholder="Latitude"
+                value={formData.defaultLocation.lat ?? ''}
+                onChange={(e) => handleChange('defaultLocation.lat', Number(e.target.value))}
+              />
+              <input
+                className="w-full border rounded p-2 text-sm"
+                placeholder="Longitude"
+                value={formData.defaultLocation.lng ?? ''}
+                onChange={(e) => handleChange('defaultLocation.lng', Number(e.target.value))}
+              />
+            </div>
           </div>
         </div>
 

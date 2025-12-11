@@ -68,11 +68,13 @@ export async function getUserById(req, res) {
 export async function updateProfile(req, res) {
     try {
         const userId = req.user.id;
-        const { name, phone, workArea, isWorkingToday, contactPhone, contactEmail, skills, title, shiftStart, shiftEnd } = req.body;
+        const { name, phone, workArea, isWorkingToday, contactPhone, contactEmail, skills, title, shiftStart, shiftEnd, address, defaultLocation } = req.body;
 
         const updateData = {};
         if (name) updateData.name = name;
         if (phone) updateData['profile.phone'] = phone;
+        if (address) updateData['profile.address'] = address;
+        if (defaultLocation) updateData['profile.defaultLocation'] = defaultLocation;
         if (workArea) updateData['staff.workArea'] = workArea;
         if (isWorkingToday !== undefined) updateData['staff.isWorkingToday'] = isWorkingToday;
         if (contactPhone) updateData['staff.contactPhone'] = contactPhone;

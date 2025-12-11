@@ -18,7 +18,20 @@ function genOtp() {
 
 export async function register(req, res) {
     try {
-        const { name, email, password, role, phone, departmentId, staff, organizationId, organizationCode, organizationName } = req.body;
+        const {
+            name,
+            email,
+            password,
+            role,
+            phone,
+            departmentId,
+            staff,
+            organizationId,
+            organizationCode,
+            organizationName,
+            address,
+            defaultLocation,
+        } = req.body;
         if (!name || !email || !password) {
             return res.status(400).json({ message: 'Missing required fields' });
         }
@@ -66,7 +79,12 @@ export async function register(req, res) {
 
         const limits = getPlanLimits(org.plan);
         const payload = { name, email, password, role, organizationId: org._id };
-        if (phone) payload.profile = { phone };
+        if (phone || address || defaultLocation) {
+            payload.profile = {};
+            if (phone) payload.profile.phone = phone;
+            if (address) payload.profile.address = address;
+            if (defaultLocation) payload.profile.defaultLocation = defaultLocation;
+        }
         if (departmentId) payload.departmentId = departmentId;
         if (staff) {
             // If registering staff, require workArea.location coordinates
@@ -156,6 +174,7 @@ export async function login(req, res) {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                profile: user.profile,
                 organization: org
                     ? { id: org._id, name: org.name, code: org.code, plan: orgPlan, features: orgFeatures }
                     : undefined
@@ -171,7 +190,7 @@ export async function me(req, res) {
         // req.user is set by requireAuth
         const userId = req.user?.id;
         if (!userId) return res.status(401).json({ message: 'Unauthorized' });
-        const user = await User.findById(userId).select('_id name email role organizationId');
+        const user = await User.findById(userId).select('_id name email role organizationId profile');
         if (!user) return res.status(404).json({ message: 'User not found' });
         const org = user.organizationId ? await Organization.findById(user.organizationId) : await Organization.findOne();
         const orgPlan = org?.plan || 'free';
@@ -182,6 +201,7 @@ export async function me(req, res) {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                profile: user.profile,
                 organization: org
                     ? { id: org._id, name: org.name, code: org.code, plan: orgPlan, features: orgFeatures }
                     : undefined

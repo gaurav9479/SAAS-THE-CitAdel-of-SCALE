@@ -41,6 +41,10 @@ const UserSchema = new mongoose.Schema(
                 state: { type: String },
                 zip: { type: String },
             },
+            defaultLocation: {
+                lat: { type: Number },
+                lng: { type: Number },
+            },
             bio: { type: String },
         },
     },
