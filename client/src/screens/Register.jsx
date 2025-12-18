@@ -34,7 +34,7 @@ const val = [
 ]
 
 export default function Register() {
-  const { register, verifyEmail, loading } = useAuth()
+  const { register, verifyEmail, loading, login } = useAuth()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
