@@ -11,7 +11,7 @@ export default function AuthLayout({ title, subtitle, children, right }) {
           </div>
         </div>
 
-        {/* Right: Testimonials / About */}
+
         <div className="flex bg-white/10 backdrop-blur-md items-center justify-center p-8 order-2">
           <div className="max-w-md text-white/90 space-y-4">
             {right || (

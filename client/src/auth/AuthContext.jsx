@@ -36,7 +36,7 @@ export function AuthProvider({ children }) {
         setUser(data.user)
         localStorage.setItem('user', JSON.stringify(data.user))
       } catch (e) {
-        // Only clear token on auth errors; keep token on network errors so user isn’t logged out on refresh
+
         const status = e?.response?.status
         if (status === 401 || status === 403) {
           setUser(null)
