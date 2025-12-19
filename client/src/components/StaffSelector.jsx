@@ -19,11 +19,11 @@ export default function StaffSelector({ lat, lng, category, onStaffSelect, selec
     setError('')
     setShowDistant(false)
     try {
-      // First try with 15 km radius
+
       const { data } = await api.get(`/api/staff/nearby?lat=${lat}&lng=${lng}&category=${category}&radius=15`)
       setStaff(data.staff || [])
       
-      // If no staff found nearby, fetch distant staff (50 km)
+
       if (!data.staff || data.staff.length === 0) {
         try {
           const { data: distantData } = await api.get(`/api/staff/nearby?lat=${lat}&lng=${lng}&category=${category}&radius=50`)
@@ -46,7 +46,7 @@ export default function StaffSelector({ lat, lng, category, onStaffSelect, selec
   if (loading) return <div className="text-sm text-gray-500">Finding nearby staff...</div>
   if (error) return <div className="text-sm text-red-600">Error: {error}</div>
 
-  // If staff found within 15 km
+
   if (staff.length > 0) {
     return (
       <div className="space-y-3">
@@ -105,7 +105,6 @@ export default function StaffSelector({ lat, lng, category, onStaffSelect, selec
     )
   }
 
-  // If no staff within 15 km, show message with option for distant staff
   return (
     <div className="space-y-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
       <div className="flex items-start gap-2">

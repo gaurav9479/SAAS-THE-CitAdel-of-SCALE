@@ -33,7 +33,7 @@ const corsOptions = {
   optionsSuccessStatus: 204,
 };
 
-// Set CORS headers for all requests and short-circuit preflight
+
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (origin && allowedOrigins.has(origin)) {
