@@ -71,7 +71,7 @@ export default function Register() {
   const [otp, setOtp] = useState('')
   const navigate = useNavigate()
 
-  // Phone validation using libphonenumber-js
+
   const isValidPhone = (phone) => {
     if (!phone) return null
     const cleaned = phone.replace(/\s+/g, '')
@@ -122,7 +122,7 @@ export default function Register() {
       try {
         const { data } = await api.get(`/api/orgs/public/code/${code}`, { signal: controller.signal })
         setOrgResolved(data.organization)
-        // If admin is typing a code and it resolves, mark as taken
+
         if (role === 'admin') setOrgCodeStatus('taken')
       } catch (e) {
         if (controller.signal.aborted) return
@@ -223,7 +223,7 @@ export default function Register() {
     }
     const res = await verifyEmail(verifyEmailAddress, otp)
     if (res.ok) {
-      // auto-login after successful verification
+
       const loginRes = await login(verifyEmailAddress, password)
       if (loginRes.ok) {
         navigate('/')

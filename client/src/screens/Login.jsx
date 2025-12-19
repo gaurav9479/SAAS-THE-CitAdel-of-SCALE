@@ -35,7 +35,6 @@ export default function Login() {
         <input autoComplete="email" className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Email" type="email" value={email} onChange={(e)=>setEmail(e.target.value)} />
         <div className="relative">
           <input
-            autoComplete="current-password"
             className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 pr-11 outline-none focus:ring-2 focus:ring-emerald-500"
             placeholder="Password"
             type={showPassword ? 'text' : 'password'}
@@ -53,7 +52,6 @@ export default function Login() {
         </div>
         {needOtp && (
           <input
-            autoComplete="one-time-code"
             className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
             placeholder="Email OTP code"
             value={otp}

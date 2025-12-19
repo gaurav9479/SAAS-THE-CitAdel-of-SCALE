@@ -96,7 +96,6 @@ export function AuthProvider({ children }) {
     setLoading(true)
     try {
       const { data } = await api.post('/api/otp/verify-email', { email, code })
-      // After verification, force user to login again to obtain token
       return { ok: true, message: data.message }
     } catch (e) {
       return { ok: false, message: e.response?.data?.message || e.message }
