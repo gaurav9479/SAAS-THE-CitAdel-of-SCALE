@@ -2,7 +2,7 @@
 ### *Tracking and fixing the city’s daily troubles — even on the move.*
 
 ---
-live-DEMo->https://saas-the-cit-adel-of-scale-kziq-gzc6jhfuc.vercel.app/login
+ live demo->https://saas-the-cit-adel-of-scale-kziq-gzc6jhfuc.vercel.app?_vercel_share=meBIPtp8Ix8mMghjxOak9IARC6iHEuoo
 ## 📖 Overview
 
 **SAAS-THE-CitAdel-of-SCALE** is a grievance redressal and city management system designed for the *Circus of Wonders* — a traveling circus that functions like a small, mobile city.
