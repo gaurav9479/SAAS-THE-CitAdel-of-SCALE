@@ -1,119 +1,148 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import api from '../api/client'
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import api from "../api/axios";
 
-const AuthContext = createContext(null)
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    const cached = localStorage.getItem('user')
+    const cached = localStorage.getItem("user");
     if (cached) {
-      try { return JSON.parse(cached) } catch { return null }
+      try {
+        return JSON.parse(cached);
+      } catch {
+        return null;
+      }
     }
-    return null
-  })
-  const [token, setToken] = useState(() => localStorage.getItem('token'))
-  const [loading, setLoading] = useState(false)
-  const [bootstrapping, setBootstrapping] = useState(true)
+    return null;
+  });
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
+  const [loading, setLoading] = useState(false);
+  const [bootstrapping, setBootstrapping] = useState(true);
 
   useEffect(() => {
-    if (token) localStorage.setItem('token', token)
-    else localStorage.removeItem('token')
-  }, [token])
+    if (token) localStorage.setItem("token", token);
+    else localStorage.removeItem("token");
+  }, [token]);
 
   useEffect(() => {
     if (user) {
-      localStorage.setItem('user', JSON.stringify(user))
+      localStorage.setItem("user", JSON.stringify(user));
     } else {
-      localStorage.removeItem('user')
+      localStorage.removeItem("user");
     }
-  }, [user])
+  }, [user]);
 
   useEffect(() => {
     async function bootstrap() {
-      if (!token) { setBootstrapping(false); return }
+      if (!token) {
+        setBootstrapping(false);
+        return;
+      }
       try {
-        const { data } = await api.get('/api/auth/me')
-        setUser(data.user)
-        localStorage.setItem('user', JSON.stringify(data.user))
+        const { data } = await api.get("/api/auth/me");
+        setUser(data.user);
+        localStorage.setItem("user", JSON.stringify(data.user));
       } catch (e) {
-
-        const status = e?.response?.status
+        const status = e?.response?.status;
         if (status === 401 || status === 403) {
-          setUser(null)
-          setToken(null)
-          localStorage.removeItem('user')
+          setUser(null);
+          setToken(null);
+          localStorage.removeItem("user");
         }
       } finally {
-        setBootstrapping(false)
+        setBootstrapping(false);
       }
     }
-    bootstrap()
-  }, [token])
+    bootstrap();
+  }, [token]);
 
   const login = async (email, password, code) => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const { data } = await api.post('/api/auth/login', { email, password, code })
+      const { data } = await api.post("/api/auth/login", {
+        email,
+        password,
+        code,
+      });
       if (data.emailVerificationRequired) {
-        return { ok: false, verify: true, message: data.message }
+        return { ok: false, verify: true, message: data.message };
       }
       if (data.user && data.token) {
-        setUser(data.user)
-        localStorage.setItem('user', JSON.stringify(data.user))
-        setToken(data.token)
-        return { ok: true }
+        setUser(data.user);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        setToken(data.token);
+        return { ok: true };
       }
-      return { ok: false, message: 'Login failed' }
+      return { ok: false, message: "Login failed" };
     } catch (e) {
-      return { ok: false, message: e.response?.data?.message || e.message }
+      return { ok: false, message: e.response?.data?.message || e.message };
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const register = async (payload) => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const { data } = await api.post('/api/auth/register', payload)
+      const { data } = await api.post("/api/auth/register", payload);
       if (data.emailVerificationRequired) {
-        return { ok: false, verify: true, message: data.message, email: payload.email, otp: data.otp }
+        return {
+          ok: false,
+          verify: true,
+          message: data.message,
+          email: payload.email,
+          otp: data.otp,
+        };
       }
       if (data.user && data.token) {
-        setUser(data.user)
-        localStorage.setItem('user', JSON.stringify(data.user))
-        setToken(data.token)
-        return { ok: true }
+        setUser(data.user);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        setToken(data.token);
+        return { ok: true };
       }
-      return { ok: false, message: 'Registration failed' }
+      return { ok: false, message: "Registration failed" };
     } catch (e) {
-      return { ok: false, message: e.response?.data?.message || e.message }
+      return { ok: false, message: e.response?.data?.message || e.message };
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const verifyEmail = async (email, code) => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const { data } = await api.post('/api/otp/verify-email', { email, code })
-      return { ok: true, message: data.message }
+      const { data } = await api.post("/api/otp/verify-email", { email, code });
+      return { ok: true, message: data.message };
     } catch (e) {
-      return { ok: false, message: e.response?.data?.message || e.message }
+      return { ok: false, message: e.response?.data?.message || e.message };
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const logout = () => {
-    setUser(null)
-    setToken(null)
-    localStorage.removeItem('user')
-  }
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem("user");
+  };
 
-  const value = useMemo(() => ({ user, token, loading, login, register, verifyEmail, logout, bootstrapping, setUser }), [user, token, loading, bootstrapping])
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  const value = useMemo(
+    () => ({
+      user,
+      token,
+      loading,
+      login,
+      register,
+      verifyEmail,
+      logout,
+      bootstrapping,
+      setUser,
+    }),
+    [user, token, loading, bootstrapping]
+  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
-  return useContext(AuthContext)
+  return useContext(AuthContext);
 }

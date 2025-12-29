@@ -1,34 +1,39 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import api from '../api/client'
-import KpiCard from '../components/KpiCard'
-import ProfileCard from '../components/ProfileCard'
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import api from "../api/axios.js";
+import KpiCard from "../components/KpiCard";
+import ProfileCard from "../components/ProfileCard";
 
 export default function AdminDashboard() {
-  const [data, setData] = useState({ total: 0, byStatus: {}, overdue: 0, categories: [] })
-  const [staff, setStaff] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState({
+    total: 0,
+    byStatus: {},
+    overdue: 0,
+    categories: [],
+  });
+  const [staff, setStaff] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
         const [s, c, staffList] = await Promise.all([
-          api.get('/api/analytics/summary'),
-          api.get('/api/analytics/categories'),
-          api.get('/api/users?role=staff'),
-        ])
-        setData({ ...s.data, categories: c.data.categories })
-        setStaff(staffList.data.users || [])
+          api.get("/api/analytics/summary"),
+          api.get("/api/analytics/categories"),
+          api.get("/api/users?role=staff"),
+        ]);
+        setData({ ...s.data, categories: c.data.categories });
+        setStaff(staffList.data.users || []);
       } catch (e) {
         // noop placeholder
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
-  const by = data.byStatus || {}
+  const by = data.byStatus || {};
 
   return (
     <div className="p-6 space-y-6">
@@ -43,14 +48,22 @@ export default function AdminDashboard() {
       <div className="bg-white rounded-xl p-4 shadow">
         <h2 className="text-lg font-medium mb-2">Top Categories</h2>
         <ul className="list-disc ml-6">
-          {loading ? <li>Loading…</li> : (data.categories || []).map(c => (
-            <li key={c._id}>{c._id} — {c.count}</li>
-          ))}
+          {loading ? (
+            <li>Loading…</li>
+          ) : (
+            (data.categories || []).map((c) => (
+              <li key={c._id}>
+                {c._id} — {c.count}
+              </li>
+            ))
+          )}
         </ul>
       </div>
 
       <div className="bg-white rounded-xl p-4 shadow">
-        <h2 className="text-lg font-medium mb-3">Registered Staff ({staff.length})</h2>
+        <h2 className="text-lg font-medium mb-3">
+          Registered Staff ({staff.length})
+        </h2>
         {loading ? (
           <p>Loading…</p>
         ) : staff.length === 0 ? (
@@ -68,20 +81,38 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {staff.map(s => (
+                {staff.map((s) => (
                   <tr key={s._id} className="border-t hover:bg-gray-50">
                     <td className="py-2">
-                      <Link to={`/staff/${s._id}`} className="text-emerald-700 hover:underline font-medium">{s.name}</Link>
+                      <Link
+                        to={`/staff/${s._id}`}
+                        className="text-emerald-700 hover:underline font-medium"
+                      >
+                        {s.name}
+                      </Link>
                     </td>
                     <td className="py-2">{s.email}</td>
-                    <td className="py-2">{s.departmentId?.name || 'N/A'}</td>
-                    <td className="py-2">{s.staff?.workArea?.city || 'N/A'} {s.staff?.workArea?.zones?.length > 0 && `(${s.staff.workArea.zones.join(', ')})`}</td>
+                    <td className="py-2">{s.departmentId?.name || "N/A"}</td>
+                    <td className="py-2">
+                      {s.staff?.workArea?.city || "N/A"}{" "}
+                      {s.staff?.workArea?.zones?.length > 0 &&
+                        `(${s.staff.workArea.zones.join(", ")})`}
+                    </td>
                     <td className="py-2">
                       <div className="flex items-center gap-2">
-                        <span className={s.staff?.isWorkingToday ? 'text-green-600' : 'text-red-600'}>
-                          {s.staff?.isWorkingToday ? '🟢' : '🔴'}
+                        <span
+                          className={
+                            s.staff?.isWorkingToday
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }
+                        >
+                          {s.staff?.isWorkingToday ? "🟢" : "🔴"}
                         </span>
-                        <span>⭐ {s.ratings?.average?.toFixed(1) || 0} ({s.ratings?.count || 0})</span>
+                        <span>
+                          ⭐ {s.ratings?.average?.toFixed(1) || 0} (
+                          {s.ratings?.count || 0})
+                        </span>
                       </div>
                     </td>
                   </tr>
@@ -92,5 +123,5 @@ export default function AdminDashboard() {
         )}
       </div>
     </div>
-  )
+  );
 }

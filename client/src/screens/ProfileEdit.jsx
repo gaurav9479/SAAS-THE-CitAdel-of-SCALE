@@ -1,155 +1,166 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import api from '../api/client'
-import { useAuth } from '../auth/AuthContext'
-import PhoneInput from 'react-phone-number-input'
-import { parsePhoneNumber } from 'libphonenumber-js'
-import 'react-phone-number-input/style.css'
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../api/axios";
+import { useAuth } from "../auth/AuthContext";
+import PhoneInput from "react-phone-number-input";
+import { parsePhoneNumber } from "libphonenumber-js";
+import "react-phone-number-input/style.css";
 
 export default function ProfileEdit() {
-  const { user, setUser } = useAuth()
-  const navigate = useNavigate()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [copied, setCopied] = useState(false)
+  const { user, setUser } = useAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    address: { line1: '', city: '', state: '', zip: '' },
+    name: "",
+    phone: "",
+    address: { line1: "", city: "", state: "", zip: "" },
     defaultLocation: { lat: null, lng: null },
-    workArea: { city: '', zones: [] },
+    workArea: { city: "", zones: [] },
     isWorkingToday: true,
-    contactPhone: '',
-    contactEmail: '',
+    contactPhone: "",
+    contactEmail: "",
     skills: [],
-    title: '',
-    shiftStart: '',
-    shiftEnd: '',
-  })
+    title: "",
+    shiftStart: "",
+    shiftEnd: "",
+  });
 
   // Phone validation
   const isValidPhone = (phone) => {
-    if (!phone) return null
+    if (!phone) return null;
     try {
-      const phoneNumber = parsePhoneNumber(phone)
-      return phoneNumber ? phoneNumber.isValid() : false
+      const phoneNumber = parsePhoneNumber(phone);
+      return phoneNumber ? phoneNumber.isValid() : false;
     } catch {
-      return false
+      return false;
     }
-  }
+  };
 
   useEffect(() => {
     if (user) {
       setFormData({
-        name: user.name || '',
-        phone: user.profile?.phone || '',
+        name: user.name || "",
+        phone: user.profile?.phone || "",
         address: {
-          line1: user.profile?.address?.line1 || '',
-          city: user.profile?.address?.city || '',
-          state: user.profile?.address?.state || '',
-          zip: user.profile?.address?.zip || '',
+          line1: user.profile?.address?.line1 || "",
+          city: user.profile?.address?.city || "",
+          state: user.profile?.address?.state || "",
+          zip: user.profile?.address?.zip || "",
         },
         defaultLocation: {
           lat: user.profile?.defaultLocation?.lat ?? null,
           lng: user.profile?.defaultLocation?.lng ?? null,
         },
         workArea: {
-          city: user.staff?.workArea?.city || '',
+          city: user.staff?.workArea?.city || "",
           zones: user.staff?.workArea?.zones || [],
         },
         isWorkingToday: user.staff?.isWorkingToday ?? true,
-        contactPhone: user.staff?.contactPhone || '',
-        contactEmail: user.staff?.contactEmail || '',
+        contactPhone: user.staff?.contactPhone || "",
+        contactEmail: user.staff?.contactEmail || "",
         skills: user.staff?.skills || [],
-        title: user.staff?.title || '',
-        shiftStart: user.staff?.shiftStart || '',
-        shiftEnd: user.staff?.shiftEnd || '',
-      })
+        title: user.staff?.title || "",
+        shiftStart: user.staff?.shiftStart || "",
+        shiftEnd: user.staff?.shiftEnd || "",
+      });
     }
-  }, [user])
+  }, [user]);
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
     // Validate phone numbers if provided
     if (formData.phone && !isValidPhone(formData.phone)) {
-      setError('Please enter a valid phone number')
-      setLoading(false)
-      return
+      setError("Please enter a valid phone number");
+      setLoading(false);
+      return;
     }
 
-    if (user.role === 'staff' && formData.contactPhone && !isValidPhone(formData.contactPhone)) {
-      setError('Please enter a valid contact phone number')
-      setLoading(false)
-      return
+    if (
+      user.role === "staff" &&
+      formData.contactPhone &&
+      !isValidPhone(formData.contactPhone)
+    ) {
+      setError("Please enter a valid contact phone number");
+      setLoading(false);
+      return;
     }
 
     try {
-      const { data } = await api.patch('/api/users/profile', formData)
-      setUser(data.user)
-      navigate('/')
+      const { data } = await api.patch("/api/users/profile", formData);
+      setUser(data.user);
+      navigate("/");
     } catch (e) {
-      setError(e.response?.data?.message || 'Failed to update profile')
+      setError(e.response?.data?.message || "Failed to update profile");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleChange = (field, value) => {
-    if (field.includes('.')) {
-      const [parent, child] = field.split('.')
-      setFormData(prev => ({
+    if (field.includes(".")) {
+      const [parent, child] = field.split(".");
+      setFormData((prev) => ({
         ...prev,
-        [parent]: { ...prev[parent], [child]: value }
-      }))
+        [parent]: { ...prev[parent], [child]: value },
+      }));
     } else {
-      setFormData(prev => ({ ...prev, [field]: value }))
+      setFormData((prev) => ({ ...prev, [field]: value }));
     }
-  }
+  };
 
   const handleArrayChange = (field, value) => {
-    const array = value.split(',').map(s => s.trim()).filter(Boolean)
-    setFormData(prev => ({ ...prev, [field]: array }))
-  }
+    const array = value
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    setFormData((prev) => ({ ...prev, [field]: array }));
+  };
 
-  if (!user) return <div className="p-6">Loading...</div>
+  if (!user) return <div className="p-6">Loading...</div>;
 
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6">
       <h1 className="text-2xl font-semibold">Edit Profile</h1>
       {error && <p className="text-red-600 text-sm">{error}</p>}
-      {user.role === 'admin' && user.organization && (
+      {user.role === "admin" && user.organization && (
         <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-sm text-emerald-900">
-          <div className="font-semibold text-emerald-800">Share your organization code</div>
+          <div className="font-semibold text-emerald-800">
+            Share your organization code
+          </div>
           <div className="mt-1 flex items-center gap-2">
             <code className="px-2 py-1 rounded bg-white border border-emerald-200 text-emerald-800">
-              {user.organization.code || 'N/A'}
+              {user.organization.code || "N/A"}
             </code>
             <button
               type="button"
               onClick={() => {
                 if (user.organization.code) {
-                  navigator.clipboard.writeText(user.organization.code)
-                  setCopied(true)
-                  setTimeout(() => setCopied(false), 1500)
+                  navigator.clipboard.writeText(user.organization.code);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 1500);
                 }
               }}
               className={`px-2 py-1 rounded text-xs font-semibold transition ${
                 copied
-                  ? 'bg-emerald-700 text-white scale-95'
-                  : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                  ? "bg-emerald-700 text-white scale-95"
+                  : "bg-emerald-600 text-white hover:bg-emerald-700"
               } disabled:opacity-60`}
               disabled={!user.organization.code}
             >
-              {copied ? 'Copied!' : 'Copy'}
+              {copied ? "Copied!" : "Copy"}
             </button>
-            <span className="text-xs text-emerald-700">Give this code to staff/citizens to join your org.</span>
+            <span className="text-xs text-emerald-700">
+              Give this code to staff/citizens to join your org.
+            </span>
           </div>
         </div>
       )}
-      
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="bg-white rounded-xl p-4 shadow space-y-4">
           <h2 className="text-lg font-medium">Basic Information</h2>
@@ -158,23 +169,33 @@ export default function ProfileEdit() {
             <input
               className="w-full border rounded p-2"
               value={formData.name}
-              onChange={(e) => handleChange('name', e.target.value)}
+              onChange={(e) => handleChange("name", e.target.value)}
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Phone Number</label>
+            <label className="block text-sm font-medium mb-1">
+              Phone Number
+            </label>
             <PhoneInput
               className="phone-input"
               value={formData.phone}
-              onChange={(value) => handleChange('phone', value)}
+              onChange={(value) => handleChange("phone", value)}
               defaultCountry="IN"
               placeholder="Enter phone number"
             />
             {formData.phone && (
               <div className="text-xs mt-1">
-                <span className={isValidPhone(formData.phone) ? 'text-green-600' : 'text-red-600'}>
-                  {isValidPhone(formData.phone) ? '✓ Valid phone number' : '✗ Invalid phone number'}
+                <span
+                  className={
+                    isValidPhone(formData.phone)
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }
+                >
+                  {isValidPhone(formData.phone)
+                    ? "✓ Valid phone number"
+                    : "✗ Invalid phone number"}
                 </span>
               </div>
             )}
@@ -187,75 +208,96 @@ export default function ProfileEdit() {
             className="w-full border rounded p-2"
             placeholder="Address line"
             value={formData.address.line1}
-            onChange={(e) => handleChange('address.line1', e.target.value)}
+            onChange={(e) => handleChange("address.line1", e.target.value)}
           />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <input
               className="w-full border rounded p-2"
               placeholder="City"
               value={formData.address.city}
-              onChange={(e) => handleChange('address.city', e.target.value)}
+              onChange={(e) => handleChange("address.city", e.target.value)}
             />
             <input
               className="w-full border rounded p-2"
               placeholder="State"
               value={formData.address.state}
-              onChange={(e) => handleChange('address.state', e.target.value)}
+              onChange={(e) => handleChange("address.state", e.target.value)}
             />
             <input
               className="w-full border rounded p-2"
               placeholder="ZIP/Postal"
               value={formData.address.zip}
-              onChange={(e) => handleChange('address.zip', e.target.value)}
+              onChange={(e) => handleChange("address.zip", e.target.value)}
             />
           </div>
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium">Default location (optional)</label>
-              <span className="text-xs text-fade">Used to prefill complaints & nearby matching</span>
+              <label className="text-sm font-medium">
+                Default location (optional)
+              </label>
+              <span className="text-xs text-fade">
+                Used to prefill complaints & nearby matching
+              </span>
             </div>
             <div className="flex flex-wrap gap-2 text-sm text-fade">
               <button
                 type="button"
                 onClick={() => {
-                  if ('geolocation' in navigator) {
+                  if ("geolocation" in navigator) {
                     navigator.geolocation.getCurrentPosition(
                       (pos) => {
-                        handleChange('defaultLocation.lat', pos.coords.latitude)
-                        handleChange('defaultLocation.lng', pos.coords.longitude)
+                        handleChange(
+                          "defaultLocation.lat",
+                          pos.coords.latitude
+                        );
+                        handleChange(
+                          "defaultLocation.lng",
+                          pos.coords.longitude
+                        );
                       },
-                      () => setError('Could not fetch your location, please allow permission or pick on map')
-                    )
+                      () =>
+                        setError(
+                          "Could not fetch your location, please allow permission or pick on map"
+                        )
+                    );
                   } else {
-                    setError('Geolocation not supported in this browser')
+                    setError("Geolocation not supported in this browser");
                   }
                 }}
                 className="px-3 py-2 bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-200 text-sm"
               >
                 Use my location
               </button>
-              {(formData.defaultLocation.lat != null && formData.defaultLocation.lng != null) && (
-                <span>Lat: {Number(formData.defaultLocation.lat).toFixed(5)} • Lng: {Number(formData.defaultLocation.lng).toFixed(5)}</span>
-              )}
+              {formData.defaultLocation.lat != null &&
+                formData.defaultLocation.lng != null && (
+                  <span>
+                    Lat: {Number(formData.defaultLocation.lat).toFixed(5)} •
+                    Lng: {Number(formData.defaultLocation.lng).toFixed(5)}
+                  </span>
+                )}
             </div>
             <div className="grid grid-cols-2 gap-2">
               <input
                 className="w-full border rounded p-2 text-sm"
                 placeholder="Latitude"
-                value={formData.defaultLocation.lat ?? ''}
-                onChange={(e) => handleChange('defaultLocation.lat', Number(e.target.value))}
+                value={formData.defaultLocation.lat ?? ""}
+                onChange={(e) =>
+                  handleChange("defaultLocation.lat", Number(e.target.value))
+                }
               />
               <input
                 className="w-full border rounded p-2 text-sm"
                 placeholder="Longitude"
-                value={formData.defaultLocation.lng ?? ''}
-                onChange={(e) => handleChange('defaultLocation.lng', Number(e.target.value))}
+                value={formData.defaultLocation.lng ?? ""}
+                onChange={(e) =>
+                  handleChange("defaultLocation.lng", Number(e.target.value))
+                }
               />
             </div>
           </div>
         </div>
 
-        {user.role === 'staff' && (
+        {user.role === "staff" && (
           <div className="bg-white rounded-xl p-4 shadow space-y-4">
             <h2 className="text-lg font-medium">Work Information</h2>
             <div>
@@ -263,36 +305,42 @@ export default function ProfileEdit() {
               <input
                 className="w-full border rounded p-2"
                 value={formData.title}
-                onChange={(e) => handleChange('title', e.target.value)}
+                onChange={(e) => handleChange("title", e.target.value)}
                 placeholder="e.g., Field Engineer"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Skills (comma-separated)</label>
+              <label className="block text-sm font-medium mb-1">
+                Skills (comma-separated)
+              </label>
               <input
                 className="w-full border rounded p-2"
-                value={formData.skills.join(', ')}
-                onChange={(e) => handleArrayChange('skills', e.target.value)}
+                value={formData.skills.join(", ")}
+                onChange={(e) => handleArrayChange("skills", e.target.value)}
                 placeholder="e.g., plumbing, electrical, maintenance"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Shift Start</label>
+                <label className="block text-sm font-medium mb-1">
+                  Shift Start
+                </label>
                 <input
                   type="time"
                   className="w-full border rounded p-2"
                   value={formData.shiftStart}
-                  onChange={(e) => handleChange('shiftStart', e.target.value)}
+                  onChange={(e) => handleChange("shiftStart", e.target.value)}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Shift End</label>
+                <label className="block text-sm font-medium mb-1">
+                  Shift End
+                </label>
                 <input
                   type="time"
                   className="w-full border rounded p-2"
                   value={formData.shiftEnd}
-                  onChange={(e) => handleChange('shiftEnd', e.target.value)}
+                  onChange={(e) => handleChange("shiftEnd", e.target.value)}
                 />
               </div>
             </div>
@@ -301,65 +349,87 @@ export default function ProfileEdit() {
                 type="checkbox"
                 id="isWorkingToday"
                 checked={formData.isWorkingToday}
-                onChange={(e) => handleChange('isWorkingToday', e.target.checked)}
+                onChange={(e) =>
+                  handleChange("isWorkingToday", e.target.checked)
+                }
                 className="rounded"
               />
-              <label htmlFor="isWorkingToday" className="text-sm font-medium">Working today</label>
+              <label htmlFor="isWorkingToday" className="text-sm font-medium">
+                Working today
+              </label>
             </div>
           </div>
         )}
 
-        {user.role === 'staff' && (
+        {user.role === "staff" && (
           <div className="bg-white rounded-xl p-4 shadow space-y-4">
             <h2 className="text-lg font-medium">Work Area</h2>
             <div>
-              <label className="block text-sm font-medium mb-1">City/Area</label>
+              <label className="block text-sm font-medium mb-1">
+                City/Area
+              </label>
               <input
                 className="w-full border rounded p-2"
                 value={formData.workArea.city}
-                onChange={(e) => handleChange('workArea.city', e.target.value)}
+                onChange={(e) => handleChange("workArea.city", e.target.value)}
                 placeholder="e.g., New York, Manhattan"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Zones (comma-separated)</label>
+              <label className="block text-sm font-medium mb-1">
+                Zones (comma-separated)
+              </label>
               <input
                 className="w-full border rounded p-2"
-                value={formData.workArea.zones.join(', ')}
-                onChange={(e) => handleArrayChange('workArea.zones', e.target.value)}
+                value={formData.workArea.zones.join(", ")}
+                onChange={(e) =>
+                  handleArrayChange("workArea.zones", e.target.value)
+                }
                 placeholder="e.g., Zone A, North District, Downtown"
               />
             </div>
           </div>
         )}
 
-        {user.role === 'staff' && (
+        {user.role === "staff" && (
           <div className="bg-white rounded-xl p-4 shadow space-y-4">
             <h2 className="text-lg font-medium">Contact Information</h2>
             <div>
-              <label className="block text-sm font-medium mb-1">Contact Phone</label>
+              <label className="block text-sm font-medium mb-1">
+                Contact Phone
+              </label>
               <PhoneInput
                 className="phone-input"
                 value={formData.contactPhone}
-                onChange={(value) => handleChange('contactPhone', value)}
+                onChange={(value) => handleChange("contactPhone", value)}
                 defaultCountry="IN"
                 placeholder="Phone for citizens to contact you"
               />
               {formData.contactPhone && (
                 <div className="text-xs mt-1">
-                  <span className={isValidPhone(formData.contactPhone) ? 'text-green-600' : 'text-red-600'}>
-                    {isValidPhone(formData.contactPhone) ? '✓ Valid contact number' : '✗ Invalid contact number'}
+                  <span
+                    className={
+                      isValidPhone(formData.contactPhone)
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }
+                  >
+                    {isValidPhone(formData.contactPhone)
+                      ? "✓ Valid contact number"
+                      : "✗ Invalid contact number"}
                   </span>
                 </div>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Contact Email</label>
+              <label className="block text-sm font-medium mb-1">
+                Contact Email
+              </label>
               <input
                 type="email"
                 className="w-full border rounded p-2"
                 value={formData.contactEmail}
-                onChange={(e) => handleChange('contactEmail', e.target.value)}
+                onChange={(e) => handleChange("contactEmail", e.target.value)}
                 placeholder="Email for citizens to contact you"
               />
             </div>
@@ -372,11 +442,11 @@ export default function ProfileEdit() {
             disabled={loading}
             className="px-6 py-2 bg-emerald-600 text-white rounded disabled:opacity-50"
           >
-            {loading ? 'Updating...' : 'Update Profile'}
+            {loading ? "Updating..." : "Update Profile"}
           </button>
           <button
             type="button"
-            onClick={() => navigate('/')}
+            onClick={() => navigate("/")}
             className="px-6 py-2 border border-gray-300 rounded"
           >
             Cancel
@@ -384,5 +454,5 @@ export default function ProfileEdit() {
         </div>
       </form>
     </div>
-  )
+  );
 }

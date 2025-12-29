@@ -1,147 +1,153 @@
-import { useEffect, useState } from 'react'
-import { useAuth } from '../auth/AuthContext'
-import { Link, useNavigate } from 'react-router-dom'
-import AuthLayout from '../components/AuthLayout'
-import api from '../api/client'
-import MapPicker from '../components/MapPicker'
-import PhoneInput from 'react-phone-number-input'
-import { parsePhoneNumber } from 'libphonenumber-js';
-import 'react-phone-number-input/style.css'
+import { useEffect, useState } from "react";
+import { useAuth } from "../auth/AuthContext";
+import { Link, useNavigate } from "react-router-dom";
+import AuthLayout from "../components/AuthLayout";
+import api from "../api/axios";
+import MapPicker from "../components/MapPicker";
+import PhoneInput from "react-phone-number-input";
+import { parsePhoneNumber } from "libphonenumber-js";
+import "react-phone-number-input/style.css";
 
 const val = [
-  'Road Damage',
-  'Potholes',
-  'Street Lights Not Working',
-  'Traffic Signal Issue',
-  'Drainage Blocked',
-  'Water Leakage',
-  'No Water Supply',
-  'Water Quality Issue',
-  'Sewage Overflow',
-  'Garbage Not Collected',
-  'Illegal Dumping',
-  'Public Toilet Issue',
-  'Park Maintenance',
-  'Tree Fallen',
-  'Stray Animals',
-  'Noise Pollution',
-  'Air Pollution',
-  'Building Violation',
-  'Illegal Construction',
-  'Parking Issue',
-  'Encroachment',
-  'Other',
-]
+  "Road Damage",
+  "Potholes",
+  "Street Lights Not Working",
+  "Traffic Signal Issue",
+  "Drainage Blocked",
+  "Water Leakage",
+  "No Water Supply",
+  "Water Quality Issue",
+  "Sewage Overflow",
+  "Garbage Not Collected",
+  "Illegal Dumping",
+  "Public Toilet Issue",
+  "Park Maintenance",
+  "Tree Fallen",
+  "Stray Animals",
+  "Noise Pollution",
+  "Air Pollution",
+  "Building Violation",
+  "Illegal Construction",
+  "Parking Issue",
+  "Encroachment",
+  "Other",
+];
 
 export default function Register() {
-  const { register, verifyEmail, loading, login } = useAuth()
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [role, setRole] = useState('citizen')
-  const [orgCode, setOrgCode] = useState('')
-  const [orgName, setOrgName] = useState('')
-  const [orgResolved, setOrgResolved] = useState(null)
-  const [orgLookupError, setOrgLookupError] = useState('')
-  const [orgLookupLoading, setOrgLookupLoading] = useState(false)
-  const [orgCodeStatus, setOrgCodeStatus] = useState('') // for admin: available/taken
-  const [devOtp, setDevOtp] = useState('')
-  const [phone, setPhone] = useState('')
-  const [addressLine1, setAddressLine1] = useState('')
-  const [addressCity, setAddressCity] = useState('')
-  const [addressState, setAddressState] = useState('')
-  const [addressZip, setAddressZip] = useState('')
-  const [defaultLat, setDefaultLat] = useState(null)
-  const [defaultLng, setDefaultLng] = useState(null)
-  const [departmentId, setDepartmentId] = useState('')
-  const [title, setTitle] = useState('')
-  const [skills, setSkills] = useState('')
-  const [workCity, setWorkCity] = useState('')
-  const [workZones, setWorkZones] = useState('')
-  const [workLat, setWorkLat] = useState(28.6139)
-  const [workLng, setWorkLng] = useState(77.2090)
-  const [contactPhone, setContactPhone] = useState('')
-  const [contactEmail, setContactEmail] = useState('')
-  const [useSameContact, setUseSameContact] = useState(false)
-  const [departments, setDepartments] = useState([])
-  const [error, setError] = useState('')
-  const [verifyMode, setVerifyMode] = useState(false)
-  const [verifyEmailAddress, setVerifyEmailAddress] = useState('')
-  const [otp, setOtp] = useState('')
-  const navigate = useNavigate()
-
+  const { register, verifyEmail, loading, login } = useAuth();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [role, setRole] = useState("citizen");
+  const [orgCode, setOrgCode] = useState("");
+  const [orgName, setOrgName] = useState("");
+  const [orgResolved, setOrgResolved] = useState(null);
+  const [orgLookupError, setOrgLookupError] = useState("");
+  const [orgLookupLoading, setOrgLookupLoading] = useState(false);
+  const [orgCodeStatus, setOrgCodeStatus] = useState(""); // for admin: available/taken
+  const [devOtp, setDevOtp] = useState("");
+  const [phone, setPhone] = useState("");
+  const [addressLine1, setAddressLine1] = useState("");
+  const [addressCity, setAddressCity] = useState("");
+  const [addressState, setAddressState] = useState("");
+  const [addressZip, setAddressZip] = useState("");
+  const [defaultLat, setDefaultLat] = useState(null);
+  const [defaultLng, setDefaultLng] = useState(null);
+  const [departmentId, setDepartmentId] = useState("");
+  const [title, setTitle] = useState("");
+  const [skills, setSkills] = useState("");
+  const [workCity, setWorkCity] = useState("");
+  const [workZones, setWorkZones] = useState("");
+  const [workLat, setWorkLat] = useState(28.6139);
+  const [workLng, setWorkLng] = useState(77.209);
+  const [contactPhone, setContactPhone] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [useSameContact, setUseSameContact] = useState(false);
+  const [departments, setDepartments] = useState([]);
+  const [error, setError] = useState("");
+  const [verifyMode, setVerifyMode] = useState(false);
+  const [verifyEmailAddress, setVerifyEmailAddress] = useState("");
+  const [otp, setOtp] = useState("");
+  const navigate = useNavigate();
 
   const isValidPhone = (phone) => {
-    if (!phone) return null
-    const cleaned = phone.replace(/\s+/g, '')
-    return /^\+?91\d{10}$/.test(cleaned)
-  }
+    if (!phone) return null;
+    const cleaned = phone.replace(/\s+/g, "");
+    return /^\+?91\d{10}$/.test(cleaned);
+  };
 
   const formatPhone = (phone) => {
-    if (!phone) return ''
+    if (!phone) return "";
     try {
-      const phoneNumber = parsePhoneNumber(phone)
-      return phoneNumber ? phoneNumber.formatInternational() : phone
+      const phoneNumber = parsePhoneNumber(phone);
+      return phoneNumber ? phoneNumber.formatInternational() : phone;
     } catch {
-      return phone
+      return phone;
     }
-  }
+  };
 
   useEffect(() => {
-    if (role === 'staff') {
+    if (role === "staff") {
       (async () => {
         try {
-          const { data } = await api.get('/api/departments')
-          setDepartments(data.departments || [])
+          const { data } = await api.get("/api/departments");
+          setDepartments(data.departments || []);
         } catch {}
-      })()
+      })();
     }
-  }, [role])
+  }, [role]);
 
   useEffect(() => {
-    if (useSameContact && role === 'staff') {
-      setContactPhone(phone)
-      setContactEmail(email)
+    if (useSameContact && role === "staff") {
+      setContactPhone(phone);
+      setContactEmail(email);
     }
-  }, [phone, email, useSameContact, role])
+  }, [phone, email, useSameContact, role]);
 
   useEffect(() => {
     if (!orgCode) {
-      setOrgResolved(null)
-      setOrgLookupError('')
-      setOrgCodeStatus('')
-      return
+      setOrgResolved(null);
+      setOrgLookupError("");
+      setOrgCodeStatus("");
+      return;
     }
-    const controller = new AbortController()
-    setOrgLookupLoading(true)
-    setOrgLookupError('')
-    setOrgResolved(null)
-    const code = orgCode.trim().toUpperCase()
+    const controller = new AbortController();
+    setOrgLookupLoading(true);
+    setOrgLookupError("");
+    setOrgResolved(null);
+    const code = orgCode.trim().toUpperCase();
     const timeout = setTimeout(async () => {
       try {
-        const { data } = await api.get(`/api/orgs/public/code/${code}`, { signal: controller.signal })
-        setOrgResolved(data.organization)
+        const { data } = await api.get(`/api/orgs/public/code/${code}`, {
+          signal: controller.signal,
+        });
+        setOrgResolved(data.organization);
 
-        if (role === 'admin') setOrgCodeStatus('taken')
+        if (role === "admin") setOrgCodeStatus("taken");
       } catch (e) {
-        if (controller.signal.aborted) return
-        setOrgLookupError(e.response?.data?.message || 'Organization not found')
-        if (role === 'admin') setOrgCodeStatus('available')
+        if (controller.signal.aborted) return;
+        setOrgLookupError(
+          e.response?.data?.message || "Organization not found"
+        );
+        if (role === "admin") setOrgCodeStatus("available");
       } finally {
-        if (!controller.signal.aborted) setOrgLookupLoading(false)
+        if (!controller.signal.aborted) setOrgLookupLoading(false);
       }
-    }, 300)
-    return () => { controller.abort(); clearTimeout(timeout); }
-  }, [orgCode, role])
+    }, 300);
+    return () => {
+      controller.abort();
+      clearTimeout(timeout);
+    };
+  }, [orgCode, role]);
 
   const onSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     // Validate required fields
     if (!name || !email || !password) {
-      setError('Name, email, and password are required')
-      return
+      setError("Name, email, and password are required");
+      return;
     }
 
     // Validate phone if provided
@@ -151,127 +157,190 @@ export default function Register() {
     // }
 
     // Validate staff-specific requirements
-    if (role === 'staff' && departmentId) {
-      if (workLat == null || workLng == null || Number.isNaN(workLat) || Number.isNaN(workLng)) {
-        setError('Please select your working area on the map or use your location')
-        return
+    if (role === "staff" && departmentId) {
+      if (
+        workLat == null ||
+        workLng == null ||
+        Number.isNaN(workLat) ||
+        Number.isNaN(workLng)
+      ) {
+        setError(
+          "Please select your working area on the map or use your location"
+        );
+        return;
       }
       if (!isValidPhone(contactPhone)) {
-        setError('Please enter a valid contact phone number')
-        return
+        setError("Please enter a valid contact phone number");
+        return;
       }
     }
 
-    if (role !== 'admin') {
+    if (role !== "admin") {
       if (!orgCode || !orgResolved) {
-        setError('Enter a valid organization code and select the resolved org.')
-        return
+        setError(
+          "Enter a valid organization code and select the resolved org."
+        );
+        return;
       }
     }
 
-    const payload = { name, email, password, role }
-    if (orgCode) payload.organizationCode = orgCode
-    if (orgName) payload.organizationName = orgName
-    if (phone) payload.phone = phone
+    const payload = { name, email, password, role };
+    if (orgCode) payload.organizationCode = orgCode;
+    if (orgName) payload.organizationName = orgName;
+    if (phone) payload.phone = phone;
     if (addressLine1 || addressCity || addressState || addressZip) {
       payload.address = {
         line1: addressLine1,
         city: addressCity,
         state: addressState,
         zip: addressZip,
-      }
+      };
     }
-    if (defaultLat != null && defaultLng != null && !Number.isNaN(defaultLat) && !Number.isNaN(defaultLng)) {
-      payload.defaultLocation = { lat: Number(defaultLat), lng: Number(defaultLng) }
+    if (
+      defaultLat != null &&
+      defaultLng != null &&
+      !Number.isNaN(defaultLat) &&
+      !Number.isNaN(defaultLng)
+    ) {
+      payload.defaultLocation = {
+        lat: Number(defaultLat),
+        lng: Number(defaultLng),
+      };
     }
 
-    if (role === 'staff' && departmentId) {
-      payload.departmentId = departmentId
+    if (role === "staff" && departmentId) {
+      payload.departmentId = departmentId;
       payload.staff = {
         title,
-        skills: skills.split(',').map(s=>s.trim()).filter(Boolean),
+        skills: skills
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
         workArea: {
           city: workCity,
-          zones: workZones.split(',').map(s=>s.trim()).filter(Boolean),
+          zones: workZones
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean),
           location: { lat: Number(workLat), lng: Number(workLng) },
         },
         contactPhone,
         contactEmail,
-      }
+      };
     }
 
-    const res = await register(payload)
+    const res = await register(payload);
     if (res.ok) {
-      navigate('/')
-      return
+      navigate("/");
+      return;
     }
     if (res.verify) {
-      setVerifyMode(true)
-      setVerifyEmailAddress(email)
-      setError('Enter the OTP sent to your email to verify.')
-      if (res.otp) setDevOtp(res.otp)
-      return
+      setVerifyMode(true);
+      setVerifyEmailAddress(email);
+      setError("Enter the OTP sent to your email to verify.");
+      if (res.otp) setDevOtp(res.otp);
+      return;
     }
-    setError(res.message || 'Registration failed')
-  }
+    setError(res.message || "Registration failed");
+  };
 
   const onVerify = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!otp || !verifyEmailAddress) {
-      setError('Enter OTP to verify')
-      return
+      setError("Enter OTP to verify");
+      return;
     }
-    const res = await verifyEmail(verifyEmailAddress, otp)
+    const res = await verifyEmail(verifyEmailAddress, otp);
     if (res.ok) {
-
-      const loginRes = await login(verifyEmailAddress, password)
+      const loginRes = await login(verifyEmailAddress, password);
       if (loginRes.ok) {
-        navigate('/')
-        return
+        navigate("/");
+        return;
       }
-      setError(loginRes.message || 'Verified, but login failed. Please try signing in.')
-      setDevOtp('')
+      setError(
+        loginRes.message || "Verified, but login failed. Please try signing in."
+      );
+      setDevOtp("");
     } else {
-      setError(res.message || 'Verification failed')
+      setError(res.message || "Verification failed");
     }
-  }
+  };
 
   if (verifyMode) {
     return (
-      <AuthLayout title="Verify your email" subtitle="Enter the OTP sent to your email">
+      <AuthLayout
+        title="Verify your email"
+        subtitle="Enter the OTP sent to your email"
+      >
         <form onSubmit={onVerify} className="space-y-4">
           {error && <p className="text-red-200 text-sm">{error}</p>}
-          {devOtp && <p className="text-sm text-emerald-100">Dev OTP (for demo): {devOtp}</p>}
-          <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Email" type="email" value={verifyEmailAddress} disabled />
-          <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="6-digit OTP" value={otp} onChange={(e)=>setOtp(e.target.value)} />
-          <button disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-medium disabled:opacity-50 transition">{loading? 'Verifying...' : 'Verify email'}</button>
+          {devOtp && (
+            <p className="text-sm text-emerald-100">
+              Dev OTP (for demo): {devOtp}
+            </p>
+          )}
+          <input
+            className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
+            placeholder="Email"
+            type="email"
+            value={verifyEmailAddress}
+            disabled
+          />
+          <input
+            className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
+            placeholder="6-digit OTP"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+          />
+          <button
+            disabled={loading}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-medium disabled:opacity-50 transition"
+          >
+            {loading ? "Verifying..." : "Verify email"}
+          </button>
         </form>
       </AuthLayout>
-    )
+    );
   }
 
   return (
-    <AuthLayout title="Create account" subtitle="Join the Caravan and start reporting or resolving issues.">
+    <AuthLayout
+      title="Create account"
+      subtitle="Join the Caravan and start reporting or resolving issues."
+    >
       <form onSubmit={onSubmit} className="space-y-4">
         {error && <p className="text-red-200 text-sm">{error}</p>}
-        <input autoComplete="name" className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Name" value={name} onChange={(e)=>setName(e.target.value)} />
-        <input autoComplete="email" className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Email" type="email" value={email} onChange={(e)=>setEmail(e.target.value)} />
+        <input
+          autoComplete="name"
+          className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
+          placeholder="Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <input
+          autoComplete="email"
+          className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
+          placeholder="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
         <div className="relative">
           <input
             autoComplete="new-password"
             className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 pr-11 outline-none focus:ring-2 focus:ring-emerald-500"
             placeholder="Password"
-            type={showPassword ? 'text' : 'password'}
+            type={showPassword ? "text" : "password"}
             value={password}
-            onChange={(e)=>setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
           />
           <button
             type="button"
-            onClick={()=>setShowPassword(v=>!v)}
+            onClick={() => setShowPassword((v) => !v)}
             className="absolute inset-y-0 right-0 px-3 text-sm text-emerald-700 hover:text-emerald-900"
-            aria-label={showPassword ? 'Hide password' : 'Show password'}
+            aria-label={showPassword ? "Hide password" : "Show password"}
           >
-            {showPassword ? 'Hide' : 'Show'}
+            {showPassword ? "Hide" : "Show"}
           </button>
         </div>
         <div>
@@ -282,130 +351,256 @@ export default function Register() {
               onChange={setPhone}
               defaultCountry="IN"
               placeholder="Enter phone number (optional)"
-              style={{ width: '100%' }}
-              inputStyle={{ color: '#111827', backgroundColor: 'transparent' }}
-              countrySelectProps={{ className: '!border-0 !outline-none !ring-0 bg-transparent text-gray-900 px-2 py-1' }}
+              style={{ width: "100%" }}
+              inputStyle={{ color: "#111827", backgroundColor: "transparent" }}
+              countrySelectProps={{
+                className:
+                  "!border-0 !outline-none !ring-0 bg-transparent text-gray-900 px-2 py-1",
+              }}
             />
           </div>
           {phone && (
             <div className="text-xs mt-1">
-              <span className={isValidPhone(phone) ? 'text-green-600' : 'text-red-600'}>
-                {isValidPhone(phone) ? '✓ Valid phone number' : '✗ Invalid phone number'}
+              <span
+                className={
+                  isValidPhone(phone) ? "text-green-600" : "text-red-600"
+                }
+              >
+                {isValidPhone(phone)
+                  ? "✓ Valid phone number"
+                  : "✗ Invalid phone number"}
               </span>
-              {isValidPhone(phone) && <span className="text-fade ml-2">({formatPhone(phone)})</span>}
+              {isValidPhone(phone) && (
+                <span className="text-fade ml-2">({formatPhone(phone)})</span>
+              )}
             </div>
           )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Address line (optional)" value={addressLine1} onChange={(e)=>setAddressLine1(e.target.value)} />
-          <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="City (optional)" value={addressCity} onChange={(e)=>setAddressCity(e.target.value)} />
-          <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="State (optional)" value={addressState} onChange={(e)=>setAddressState(e.target.value)} />
-          <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="ZIP/Postal (optional)" value={addressZip} onChange={(e)=>setAddressZip(e.target.value)} />
+          <input
+            className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
+            placeholder="Address line (optional)"
+            value={addressLine1}
+            onChange={(e) => setAddressLine1(e.target.value)}
+          />
+          <input
+            className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
+            placeholder="City (optional)"
+            value={addressCity}
+            onChange={(e) => setAddressCity(e.target.value)}
+          />
+          <input
+            className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
+            placeholder="State (optional)"
+            value={addressState}
+            onChange={(e) => setAddressState(e.target.value)}
+          />
+          <input
+            className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
+            placeholder="ZIP/Postal (optional)"
+            value={addressZip}
+            onChange={(e) => setAddressZip(e.target.value)}
+          />
         </div>
 
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">Default location (optional)</label>
-            <span className="text-xs text-fade">Used to prefill complaints & nearby matching</span>
+            <label className="text-sm font-medium">
+              Default location (optional)
+            </label>
+            <span className="text-xs text-fade">
+              Used to prefill complaints & nearby matching
+            </span>
           </div>
           <div className="flex flex-wrap gap-2 text-sm text-fade">
             <button
               type="button"
               onClick={() => {
-                if ('geolocation' in navigator) {
+                if ("geolocation" in navigator) {
                   navigator.geolocation.getCurrentPosition(
                     (pos) => {
-                      setDefaultLat(pos.coords.latitude)
-                      setDefaultLng(pos.coords.longitude)
+                      setDefaultLat(pos.coords.latitude);
+                      setDefaultLng(pos.coords.longitude);
                     },
-                    () => setError('Could not fetch your location, please allow permission or pick on map')
-                  )
+                    () =>
+                      setError(
+                        "Could not fetch your location, please allow permission or pick on map"
+                      )
+                  );
                 } else {
-                  setError('Geolocation not supported in this browser')
+                  setError("Geolocation not supported in this browser");
                 }
               }}
               className="px-3 py-2 bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-200 text-sm"
             >
               Use my location
             </button>
-            {(defaultLat != null && defaultLng != null) && (
-              <span>Lat: {Number(defaultLat).toFixed(5)} • Lng: {Number(defaultLng).toFixed(5)}</span>
+            {defaultLat != null && defaultLng != null && (
+              <span>
+                Lat: {Number(defaultLat).toFixed(5)} • Lng:{" "}
+                {Number(defaultLng).toFixed(5)}
+              </span>
             )}
           </div>
           <MapPicker
             lat={defaultLat ?? 28.6139}
-            lng={defaultLng ?? 77.2090}
-            onLocationChange={(lat, lng) => { setDefaultLat(lat); setDefaultLng(lng) }}
+            lng={defaultLng ?? 77.209}
+            onLocationChange={(lat, lng) => {
+              setDefaultLat(lat);
+              setDefaultLng(lng);
+            }}
           />
         </div>
-        <select className="w-full rounded-lg bg-white/90 text-gray-900 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" value={role} onChange={(e)=>setRole(e.target.value)}>
+        <select
+          className="w-full rounded-lg bg-white/90 text-gray-900 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+        >
           <option value="citizen">Citizen</option>
           <option value="staff">Staff</option>
           <option value="admin">Admin</option>
         </select>
-        {role === 'admin' && (
+        {role === "admin" && (
           <>
-            <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Organization Name" value={orgName} onChange={(e)=>setOrgName(e.target.value)} />
+            <input
+              className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="Organization Name"
+              value={orgName}
+              onChange={(e) => setOrgName(e.target.value)}
+            />
             <div className="space-y-1">
-              <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Organization Code (leave blank to auto-generate)" value={orgCode} onChange={(e)=>setOrgCode(e.target.value.toUpperCase())} />
-              {orgCode && orgLookupLoading && <div className="text-sm text-emerald-700">Checking code availability…</div>}
-              {orgCode && orgCodeStatus === 'taken' && <div className="text-sm text-red-600">This code is already taken. Try another.</div>}
-              {orgCode && orgCodeStatus === 'available' && <div className="text-sm text-emerald-700">Code is available.</div>}
+              <input
+                className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
+                placeholder="Organization Code (leave blank to auto-generate)"
+                value={orgCode}
+                onChange={(e) => setOrgCode(e.target.value.toUpperCase())}
+              />
+              {orgCode && orgLookupLoading && (
+                <div className="text-sm text-emerald-700">
+                  Checking code availability…
+                </div>
+              )}
+              {orgCode && orgCodeStatus === "taken" && (
+                <div className="text-sm text-red-600">
+                  This code is already taken. Try another.
+                </div>
+              )}
+              {orgCode && orgCodeStatus === "available" && (
+                <div className="text-sm text-emerald-700">
+                  Code is available.
+                </div>
+              )}
             </div>
           </>
         )}
-        {role !== 'admin' && (
+        {role !== "admin" && (
           <div className="space-y-2">
-            <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Organization Code (from your admin)" value={orgCode} onChange={(e)=>setOrgCode(e.target.value.toUpperCase())} />
-            {orgLookupLoading && <div className="text-sm text-emerald-700">Checking organization…</div>}
+            <input
+              className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="Organization Code (from your admin)"
+              value={orgCode}
+              onChange={(e) => setOrgCode(e.target.value.toUpperCase())}
+            />
+            {orgLookupLoading && (
+              <div className="text-sm text-emerald-700">
+                Checking organization…
+              </div>
+            )}
             {orgResolved && (
-              <select className="w-full rounded-lg bg-white/90 text-gray-900 px-4 py-3 outline-none border border-emerald-200" disabled value={orgResolved.id}>
-                <option value={orgResolved.id}>{orgResolved.name} ({orgResolved.plan})</option>
+              <select
+                className="w-full rounded-lg bg-white/90 text-gray-900 px-4 py-3 outline-none border border-emerald-200"
+                disabled
+                value={orgResolved.id}
+              >
+                <option value={orgResolved.id}>
+                  {orgResolved.name} ({orgResolved.plan})
+                </option>
               </select>
             )}
-            {orgLookupError && <div className="text-sm text-red-600">{orgLookupError}</div>}
+            {orgLookupError && (
+              <div className="text-sm text-red-600">{orgLookupError}</div>
+            )}
           </div>
         )}
-        {role === 'staff' && (
+        {role === "staff" && (
           <>
-            <select className="w-full rounded-lg bg-white/90 text-gray-900 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" value={departmentId} onChange={(e)=>setDepartmentId(e.target.value)}>
+            <select
+              className="w-full rounded-lg bg-white/90 text-gray-900 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
+              value={departmentId}
+              onChange={(e) => setDepartmentId(e.target.value)}
+            >
               <option value="">Select Department</option>
-              {departments.map(d=><option key={d._id} value={d._id}>{d.name}</option>)}
+              {departments.map((d) => (
+                <option key={d._id} value={d._id}>
+                  {d.name}
+                </option>
+              ))}
             </select>
-            <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Title (e.g., Field Engineer)" value={title} onChange={(e)=>setTitle(e.target.value)} />
-            <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Skills (comma-separated)" value={skills} onChange={(e)=>setSkills(e.target.value)} />
-            <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Work City/Area" value={workCity} onChange={(e)=>setWorkCity(e.target.value)} />
-            <input className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Work Zones (comma-separated)" value={workZones} onChange={(e)=>setWorkZones(e.target.value)} />
+            <input
+              className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="Title (e.g., Field Engineer)"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+            <input
+              className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="Skills (comma-separated)"
+              value={skills}
+              onChange={(e) => setSkills(e.target.value)}
+            />
+            <input
+              className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="Work City/Area"
+              value={workCity}
+              onChange={(e) => setWorkCity(e.target.value)}
+            />
+            <input
+              className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="Work Zones (comma-separated)"
+              value={workZones}
+              onChange={(e) => setWorkZones(e.target.value)}
+            />
 
             <div>
-              <label className="block text-sm font-medium mb-1">Working Area Location</label>
+              <label className="block text-sm font-medium mb-1">
+                Working Area Location
+              </label>
               <div className="mb-2 flex gap-2">
                 <button
                   type="button"
                   onClick={() => {
-                    if ('geolocation' in navigator) {
+                    if ("geolocation" in navigator) {
                       navigator.geolocation.getCurrentPosition(
                         (pos) => {
-                          setWorkLat(pos.coords.latitude)
-                          setWorkLng(pos.coords.longitude)
+                          setWorkLat(pos.coords.latitude);
+                          setWorkLng(pos.coords.longitude);
                         },
-                        () => setError('Could not fetch your location, please allow permission or pick on map')
-                      )
+                        () =>
+                          setError(
+                            "Could not fetch your location, please allow permission or pick on map"
+                          )
+                      );
                     } else {
-                      setError('Geolocation not supported in this browser')
+                      setError("Geolocation not supported in this browser");
                     }
                   }}
                   className="px-3 py-2 bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-200 text-sm"
                 >
                   Use my location
                 </button>
-                <div className="text-xs text-fade self-center">Lat: {Number(workLat).toFixed(5)} • Lng: {Number(workLng).toFixed(5)}</div>
+                <div className="text-xs text-fade self-center">
+                  Lat: {Number(workLat).toFixed(5)} • Lng:{" "}
+                  {Number(workLng).toFixed(5)}
+                </div>
               </div>
               <MapPicker
                 lat={workLat}
                 lng={workLng}
-                onLocationChange={(lat, lng) => { setWorkLat(lat); setWorkLng(lng) }}
+                onLocationChange={(lat, lng) => {
+                  setWorkLat(lat);
+                  setWorkLng(lng);
+                }}
               />
             </div>
             <div className="flex items-center gap-2 mb-3">
@@ -422,7 +617,9 @@ export default function Register() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Contact Phone <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium mb-1">
+                Contact Phone <span className="text-red-500">*</span>
+              </label>
               <PhoneInput
                 className="phone-input"
                 value={contactPhone}
@@ -433,29 +630,49 @@ export default function Register() {
               />
               {contactPhone && (
                 <div className="text-xs mt-1">
-                  <span className={isValidPhone(contactPhone) ? 'text-green-600' : 'text-red-600'}>
-                    {isValidPhone(contactPhone) ? '✓ Valid contact number' : '✗ Invalid contact number'}
+                  <span
+                    className={
+                      isValidPhone(contactPhone)
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }
+                  >
+                    {isValidPhone(contactPhone)
+                      ? "✓ Valid contact number"
+                      : "✗ Invalid contact number"}
                   </span>
                 </div>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Contact Email</label>
+              <label className="block text-sm font-medium mb-1">
+                Contact Email
+              </label>
               <input
                 className="w-full rounded-lg bg-white/90 text-gray-900 placeholder-gray-500 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500"
                 type="email"
                 value={contactEmail}
-                onChange={(e)=>setContactEmail(e.target.value)}
+                onChange={(e) => setContactEmail(e.target.value)}
                 placeholder="Email for citizens to contact you"
                 disabled={useSameContact}
               />
             </div>
           </>
         )}
-        <button disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-medium disabled:opacity-50 transition">{loading? 'Creating...' : 'Create account'}</button>
-        <p className="text-white/80 text-sm">Have an account? <Link to="/login" className="underline">Sign in</Link></p>
+        <button
+          disabled={loading}
+          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-medium disabled:opacity-50 transition"
+        >
+          {loading ? "Creating..." : "Create account"}
+        </button>
+        <p className="text-white/80 text-sm">
+          Have an account?{" "}
+          <Link to="/login" className="underline">
+            Sign in
+          </Link>
+        </p>
       </form>
     </AuthLayout>
-  )
+  );
 }

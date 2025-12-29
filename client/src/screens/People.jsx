@@ -1,90 +1,113 @@
-import { useEffect, useState } from 'react'
-import api from '../api/client'
-import { useAuth } from '../auth/AuthContext'
+import { useEffect, useState } from "react";
+import api from "../api/axios";
+import { useAuth } from "../auth/AuthContext";
 
 export default function People() {
-  const { user } = useAuth()
+  const { user } = useAuth();
   const cached = (() => {
     try {
-      const raw = sessionStorage.getItem('people-cache')
-      return raw ? JSON.parse(raw) : null
-    } catch { return null }
-  })()
+      const raw = sessionStorage.getItem("people-cache");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  })();
 
-  const [summary, setSummary] = useState(cached?.summary || { staffCount: 0, citizenCount: 0, pendingCount: 0 })
-  const [pending, setPending] = useState(cached?.pending || [])
-  const [staff, setStaff] = useState(cached?.staff || [])
-  const [citizens, setCitizens] = useState(cached?.citizens || [])
-  const [loading, setLoading] = useState(!cached)
-  const [error, setError] = useState('')
-  const [rotating, setRotating] = useState(false)
+  const [summary, setSummary] = useState(
+    cached?.summary || { staffCount: 0, citizenCount: 0, pendingCount: 0 }
+  );
+  const [pending, setPending] = useState(cached?.pending || []);
+  const [staff, setStaff] = useState(cached?.staff || []);
+  const [citizens, setCitizens] = useState(cached?.citizens || []);
+  const [loading, setLoading] = useState(!cached);
+  const [error, setError] = useState("");
+  const [rotating, setRotating] = useState(false);
 
   useEffect(() => {
     const load = async () => {
       try {
         const [sum, p, s, c] = await Promise.all([
-          api.get('/api/users/org/summary'),
-          api.get('/api/users', { params: { status: 'pending' } }),
-          api.get('/api/users', { params: { role: 'staff', status: 'active' } }),
-          api.get('/api/users', { params: { role: 'citizen', status: 'active' } }),
-        ])
-        setSummary(sum.data)
-        setPending(p.data.users || [])
-        setStaff(s.data.users || [])
-        setCitizens(c.data.users || [])
+          api.get("/api/users/org/summary"),
+          api.get("/api/users", { params: { status: "pending" } }),
+          api.get("/api/users", {
+            params: { role: "staff", status: "active" },
+          }),
+          api.get("/api/users", {
+            params: { role: "citizen", status: "active" },
+          }),
+        ]);
+        setSummary(sum.data);
+        setPending(p.data.users || []);
+        setStaff(s.data.users || []);
+        setCitizens(c.data.users || []);
       } catch (e) {
-        setError(e.response?.data?.message || 'Failed to load people')
+        setError(e.response?.data?.message || "Failed to load people");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    load()
-  }, [])
+    };
+    load();
+  }, []);
 
   useEffect(() => {
     try {
-      sessionStorage.setItem('people-cache', JSON.stringify({ summary, pending, staff, citizens }))
+      sessionStorage.setItem(
+        "people-cache",
+        JSON.stringify({ summary, pending, staff, citizens })
+      );
     } catch {}
-  }, [summary, pending, staff, citizens])
+  }, [summary, pending, staff, citizens]);
 
   const approve = async (id) => {
     try {
-      await api.patch(`/api/users/${id}/approve`)
-      setPending(prev => prev.filter(u => u._id !== id))
-      setSummary(prev => ({ ...prev, pendingCount: Math.max(0, prev.pendingCount - 1) }))
+      await api.patch(`/api/users/${id}/approve`);
+      setPending((prev) => prev.filter((u) => u._id !== id));
+      setSummary((prev) => ({
+        ...prev,
+        pendingCount: Math.max(0, prev.pendingCount - 1),
+      }));
     } catch (e) {
-      setError(e.response?.data?.message || 'Failed to approve user')
+      setError(e.response?.data?.message || "Failed to approve user");
     }
-  }
+  };
 
   const reject = async (id) => {
     try {
-      await api.delete(`/api/users/${id}/reject`)
-      setPending(prev => prev.filter(u => u._id !== id))
-      setSummary(prev => ({ ...prev, pendingCount: Math.max(0, prev.pendingCount - 1) }))
+      await api.delete(`/api/users/${id}/reject`);
+      setPending((prev) => prev.filter((u) => u._id !== id));
+      setSummary((prev) => ({
+        ...prev,
+        pendingCount: Math.max(0, prev.pendingCount - 1),
+      }));
     } catch (e) {
-      setError(e.response?.data?.message || 'Failed to reject user')
+      setError(e.response?.data?.message || "Failed to reject user");
     }
-  }
+  };
 
   const rotateCode = async () => {
-    if (!user?.organization?.id) return
-    setRotating(true)
-    setError('')
+    if (!user?.organization?.id) return;
+    setRotating(true);
+    setError("");
     try {
-      const { data } = await api.patch(`/api/orgs/${user.organization.id}/rotate-code`)
-      const updatedUser = { ...user, organization: { ...user.organization, code: data.organization.code } }
-      localStorage.setItem('user', JSON.stringify(updatedUser))
-      sessionStorage.removeItem('people-cache')
-      window.location.reload()
+      const { data } = await api.patch(
+        `/api/orgs/${user.organization.id}/rotate-code`
+      );
+      const updatedUser = {
+        ...user,
+        organization: { ...user.organization, code: data.organization.code },
+      };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      sessionStorage.removeItem("people-cache");
+      window.location.reload();
     } catch (e) {
-      setError(e.response?.data?.message || 'Failed to rotate code')
+      setError(e.response?.data?.message || "Failed to rotate code");
     } finally {
-      setRotating(false)
+      setRotating(false);
     }
-  }
+  };
 
-  if (!user || user.role !== 'admin') return <div className="p-6">Forbidden</div>
+  if (!user || user.role !== "admin")
+    return <div className="p-6">Forbidden</div>;
 
   return (
     <div className="p-6 space-y-6">
@@ -93,7 +116,10 @@ export default function People() {
         <div className="flex items-center gap-2">
           {user?.organization?.code && (
             <div className="text-sm text-gray-600">
-              Org Code: <code className="px-2 py-1 bg-gray-100 rounded border">{user.organization.code}</code>
+              Org Code:{" "}
+              <code className="px-2 py-1 bg-gray-100 rounded border">
+                {user.organization.code}
+              </code>
             </div>
           )}
           <button
@@ -101,7 +127,7 @@ export default function People() {
             disabled={rotating}
             className="px-3 py-2 text-sm bg-white border rounded hover:bg-gray-50 disabled:opacity-60"
           >
-            {rotating ? 'Rotating…' : 'Rotate code'}
+            {rotating ? "Rotating…" : "Rotate code"}
           </button>
         </div>
       </div>
@@ -109,11 +135,17 @@ export default function People() {
       <div className="grid grid-cols-3 gap-4">
         <div className="rounded-lg border p-4 bg-white">
           <div className="text-sm text-gray-600">Staff</div>
-          <div className="text-2xl font-bold">{summary.staffCount}{summary.maxStaff ? ` / ${summary.maxStaff}` : ''}</div>
+          <div className="text-2xl font-bold">
+            {summary.staffCount}
+            {summary.maxStaff ? ` / ${summary.maxStaff}` : ""}
+          </div>
         </div>
         <div className="rounded-lg border p-4 bg-white">
           <div className="text-sm text-gray-600">Citizens</div>
-          <div className="text-2xl font-bold">{summary.citizenCount}{summary.maxCitizens ? ` / ${summary.maxCitizens}` : ''}</div>
+          <div className="text-2xl font-bold">
+            {summary.citizenCount}
+            {summary.maxCitizens ? ` / ${summary.maxCitizens}` : ""}
+          </div>
         </div>
         <div className="rounded-lg border p-4 bg-white">
           <div className="text-sm text-gray-600">Pending</div>
@@ -134,15 +166,25 @@ export default function People() {
               </tr>
             </thead>
             <tbody>
-              {pending.map(u => (
+              {pending.map((u) => (
                 <tr key={u._id} className="border-t">
                   <td className="py-1">{u.name}</td>
                   <td className="py-1">{u.email}</td>
                   <td className="py-1 capitalize">{u.role}</td>
                   <td className="py-1">
                     <div className="flex gap-2">
-                      <button onClick={() => approve(u._id)} className="px-3 py-1 bg-emerald-600 text-white rounded text-xs">Approve</button>
-                      <button onClick={() => reject(u._id)} className="px-3 py-1 bg-red-500 text-white rounded text-xs">Reject</button>
+                      <button
+                        onClick={() => approve(u._id)}
+                        className="px-3 py-1 bg-emerald-600 text-white rounded text-xs"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => reject(u._id)}
+                        className="px-3 py-1 bg-red-500 text-white rounded text-xs"
+                      >
+                        Reject
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -163,7 +205,7 @@ export default function People() {
             </tr>
           </thead>
           <tbody>
-            {staff.map(u => (
+            {staff.map((u) => (
               <tr key={u._id} className="border-t">
                 <td className="py-1">{u.name}</td>
                 <td className="py-1">{u.email}</td>
@@ -185,7 +227,7 @@ export default function People() {
             </tr>
           </thead>
           <tbody>
-            {citizens.map(u => (
+            {citizens.map((u) => (
               <tr key={u._id} className="border-t">
                 <td className="py-1">{u.name}</td>
                 <td className="py-1">{u.email}</td>
@@ -196,6 +238,5 @@ export default function People() {
         </table>
       </div>
     </div>
-  )
+  );
 }
-

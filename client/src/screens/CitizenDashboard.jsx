@@ -1,38 +1,40 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import api from '../api/client'
-import KpiCard from '../components/KpiCard'
-import ProfileCard from '../components/ProfileCard'
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import api from "../api/axios";
+import KpiCard from "../components/KpiCard";
+import ProfileCard from "../components/ProfileCard";
 
 export default function CitizenDashboard() {
-  const [list, setList] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [list, setList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await api.get('/api/complaints/mine')
-        setList(data.complaints || [])
+        const { data } = await api.get("/api/complaints/mine");
+        setList(data.complaints || []);
       } catch (_e) {
-        setList([])
+        setList([]);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    })()
-  }, [])
+    })();
+  }, []);
 
   const counts = useMemo(() => {
-    const c = { OPEN: 0, IN_PROGRESS: 0, RESOLVED: 0 }
-    for (const it of list) c[it.status] = (c[it.status] || 0) + 1
-    return c
-  }, [list])
+    const c = { OPEN: 0, IN_PROGRESS: 0, RESOLVED: 0 };
+    for (const it of list) c[it.status] = (c[it.status] || 0) + 1;
+    return c;
+  }, [list]);
 
   return (
     <div className="p-6 space-y-6">
       <ProfileCard />
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Citizen Dashboard</h1>
-        <Link to="/departments" className="text-sm text-emerald-700 underline">View All Departments</Link>
+        <Link to="/departments" className="text-sm text-emerald-700 underline">
+          View All Departments
+        </Link>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KpiCard label="My Open" value={counts.OPEN} />
@@ -60,11 +62,18 @@ export default function CitizenDashboard() {
                 {list.map((it) => (
                   <tr key={it._id} className="border-t hover:bg-gray-50">
                     <td className="py-2">
-                      <Link to={`/complaints/${it._id}`} className="text-emerald-700 hover:underline">{it.title}</Link>
+                      <Link
+                        to={`/complaints/${it._id}`}
+                        className="text-emerald-700 hover:underline"
+                      >
+                        {it.title}
+                      </Link>
                     </td>
                     <td className="py-2">{it.category}</td>
                     <td className="py-2">{it.status}</td>
-                    <td className="py-2">{new Date(it.createdAt).toLocaleString()}</td>
+                    <td className="py-2">
+                      {new Date(it.createdAt).toLocaleString()}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -73,5 +82,5 @@ export default function CitizenDashboard() {
         )}
       </div>
     </div>
-  )
+  );
 }
