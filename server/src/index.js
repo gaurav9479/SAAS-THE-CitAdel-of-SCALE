@@ -15,11 +15,16 @@ import otpRoutes from './routes/otpRoutes.js';
 
 const app = express();
 
+// Build allowed origins from environment and defaults
 const allowedOrigins = new Set([
   'http://localhost:5173',
   'http://localhost:5174',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:5174',
+  // Add production frontend URL from environment variable
+  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+  // Support multiple frontend URLs (comma-separated)
+  ...(process.env.FRONTEND_URLS ? process.env.FRONTEND_URLS.split(',').map(url => url.trim()) : []),
 ]);
 
 const corsOptions = {

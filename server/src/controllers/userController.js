@@ -1,7 +1,7 @@
 import User from '../models/User.js';
 import Organization from '../models/Organization.js';
 import { getPlanLimits } from '../utils/plan.js';
-import client from '../utils/redis.js';
+import { get, set, del } from '../utils/redis.js';
 
 export async function listUsers(req, res) {
     try {
@@ -80,7 +80,7 @@ export async function getUserById(req, res) {
         const { id } = req.params;
 
         // Check cache first
-        const cached = await client.get(`user:${id}`);
+        const cached = await get(`user:${id}`);
         if (cached) {
             return res.status(200).json(JSON.parse(cached));
         }
@@ -90,7 +90,7 @@ export async function getUserById(req, res) {
         if (!user) return res.status(404).json({ message: 'User not found' });
 
         // Cache for 15 minutes (900 seconds)
-        await client.set(`user:${id}`, JSON.stringify({ user }), { EX: 900 });
+        await set(`user:${id}`, JSON.stringify({ user }), { EX: 900 });
 
         return res.json({ user });
     } catch (e) {
@@ -121,7 +121,7 @@ export async function updateProfile(req, res) {
         if (!user) return res.status(404).json({ message: 'User not found' });
 
         // Invalidate cache for this user
-        await client.del(`user:${userId}`);
+        await del(`user:${userId}`);
 
         return res.json({ user, message: 'Profile updated successfully' });
     } catch (e) {

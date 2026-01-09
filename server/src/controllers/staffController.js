@@ -1,6 +1,6 @@
 import User from '../models/User.js';
 import Department from '../models/Department.js';
-import client from '../utils/redis.js';
+import { get, set, del, keys } from '../utils/redis.js';
 import Complaint from '../models/Complaint.js';
 
 // Haversine formula to calculate distance between two coordinates
@@ -28,7 +28,7 @@ export async function getNearbyStaff(req, res) {
         const cacheKey = `staff:nearby:${lat}:${lng}:${category}:${radius}`;
 
         // Check cache first (5 minutes for staff availability)
-        const cached = await client.get(cacheKey);
+        const cached = await get(cacheKey);
         if (cached) {
             return res.status(200).json(JSON.parse(cached));
         }
@@ -80,7 +80,7 @@ export async function getNearbyStaff(req, res) {
         };
 
         // Cache for 5 minutes (300 seconds)
-        await client.set(cacheKey, JSON.stringify(result), { EX: 300 });
+        await set(cacheKey, JSON.stringify(result), { EX: 300 });
 
         return res.json(result);
     } catch (err) {
@@ -121,9 +121,15 @@ export async function assignStaffToComplaint(req, res) {
 
         // Invalidate staff nearby cache for this staff member (since they're now assigned)
         // This ensures the next nearby search reflects the updated availability
-        const keys = await client.keys('staff:nearby:*');
-        for (const key of keys) {
-            await client.del(key);
+        // Note: Cache will expire naturally if Redis is not available
+        try {
+            const cacheKeys = await keys('staff:nearby:*');
+            for (const key of cacheKeys) {
+                await del(key);
+            }
+        } catch (err) {
+            // Cache invalidation failed, but that's okay - cache will expire naturally
+            console.warn('Cache invalidation skipped:', err.message);
         }
 
         return res.json({

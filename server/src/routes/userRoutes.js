@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { listUsers, getUserById, updateProfile, orgSummary, approveUser, rejectUser } from '../controllers/userController.js';
-import client from '../utils/redis.js';
 
 const router = Router();
 
