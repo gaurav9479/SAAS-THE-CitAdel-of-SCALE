@@ -55,6 +55,7 @@ export default function CitizenDashboard() {
                   <th className="py-2">Title</th>
                   <th className="py-2">Category</th>
                   <th className="py-2">Status</th>
+                  <th className="py-2">Assigned To</th>
                   <th className="py-2">Created</th>
                 </tr>
               </thead>
@@ -71,6 +72,9 @@ export default function CitizenDashboard() {
                     </td>
                     <td className="py-2">{it.category}</td>
                     <td className="py-2">{it.status}</td>
+                    <td className="py-2">
+                      {it.assignedTo?.name || "Unassigned"}
+                    </td>
                     <td className="py-2">
                       {new Date(it.createdAt).toLocaleString()}
                     </td>

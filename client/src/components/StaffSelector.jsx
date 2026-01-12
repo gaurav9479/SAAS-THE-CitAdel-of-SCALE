@@ -74,7 +74,7 @@ export default function StaffSelector({
                   ? "border-emerald-500 bg-emerald-50"
                   : "border-gray-200 hover:border-emerald-300"
               }`}
-              onClick={() => onStaffSelect(s._id)}
+              onClick={() => onStaffSelect(s._id, s.departmentId)}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -183,7 +183,7 @@ export default function StaffSelector({
                       ? "border-emerald-500 bg-emerald-50"
                       : "border-orange-200 hover:border-orange-300 bg-orange-50"
                   }`}
-                  onClick={() => onStaffSelect(s._id)}
+                  onClick={() => onStaffSelect(s._id, s.departmentId)}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">

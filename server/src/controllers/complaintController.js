@@ -15,6 +15,9 @@ export async function createComplaint(req, res) {
     try {
         const { title, description, category, priority, location, attachments, reporter, assignedDepartmentId, assignedStaffId } = req.body;
 
+        console.log('📝 Create Complaint Request');
+        console.log('📦 Data received:', JSON.stringify(req.body, null, 2));
+
         if (!title || !description || !category) {
             return res.status(400).json({ message: 'title, description and category are required' });
         }
@@ -22,6 +25,9 @@ export async function createComplaint(req, res) {
 
         const user = await User.findById(req.user?.id).select('organizationId');
         const org = user?.organizationId ? await Organization.findById(user.organizationId) : await Organization.findOne();
+
+        console.log(`🏢 Organization identified: ${org?._id} (${org?.name})`);
+
         const orgPlan = org?.plan || 'free';
         const features = getPlanFeatures(orgPlan);
 
@@ -36,6 +42,7 @@ export async function createComplaint(req, res) {
                 createdAt: { $gte: todayStart, $lte: todayEnd },
             });
             if (todaysCount >= features.maxComplaintsPerDay) {
+                console.warn(`⚠️ Daily limit reached for user: ${req.user?.id}`);
                 return res.status(429).json({ message: `Daily limit reached (${features.maxComplaintsPerDay} complaints/day). Upgrade to God/Titan for unlimited.` });
             }
         }
@@ -43,7 +50,7 @@ export async function createComplaint(req, res) {
 
         let deptId = assignedDepartmentId;
         let slaHours = features.slaHours || 72;
-        
+
         if (assignedDepartmentId) {
             const dept = await Department.findById(assignedDepartmentId).lean();
             if (dept) slaHours = Math.min(dept.slaPolicyHours || 72, slaHours);
@@ -71,19 +78,29 @@ export async function createComplaint(req, res) {
             ],
         });
 
+        console.log(`✅ Complaint created successfully in DB: ${complaint._id}`);
+        console.log(`📡 Database name: ${mongoose.connection.name}`);
+
         return res.status(201).json({ complaint });
     } catch (err) {
-        console.error('createComplaint error', err);
+        console.error('❌ createComplaint error:', err);
         return res.status(500).json({ message: 'Failed to create complaint' });
     }
 }
 
 export async function getMyComplaints(req, res) {
     try {
+
+        const orgId = req.user.organizationId ? new mongoose.Types.ObjectId(req.user.organizationId) : null;
+
         const list = await Complaint.find({
             createdBy: req.user?.id,
-            organizationId:req.user.organizationId
-        }).sort({ createdAt: -1 }).limit(50);
+            organizationId: orgId
+        })
+            .populate('assignedTo', 'name email')
+            .populate('assignedDepartmentId', 'name')
+            .sort({ createdAt: -1 })
+            .limit(50);
         return res.json({ complaints: list });
     } catch (err) {
         return res.status(500).json({ message: 'Failed to fetch complaints' });
@@ -95,8 +112,9 @@ export async function getComplaintsByStaff(req, res) {
         const { staffId } = req.params;
         const { status, from, to } = req.query;
 
-        let filter = { assignedTo: staffId,
-            organizationId:req.user.organizationId
+        let filter = {
+            assignedTo: staffId,
+            organizationId: req.user.organizationId
         };
         if (status) filter.status = status;
         if (from || to) {
@@ -116,9 +134,15 @@ export async function getAllComplaints(req, res) {
     try {
         const { status, departmentId, assignedTo, from, to, category, page = 1, limit = 20 } = req.query;
 
-        let filter = {organizationId:req.user.organizationId};
+
+        const orgId = req.user.organizationId ? new mongoose.Types.ObjectId(req.user.organizationId) : null;
+        if (!orgId) {
+            return res.status(400).json({ message: 'Organization not found for user' });
+        }
+
+        let filter = { organizationId: orgId };
         if (status) filter.status = status;
-        
+
         if (departmentId) filter.assignedDepartmentId = departmentId;
         if (assignedTo) filter.assignedTo = assignedTo;
         if (category) filter.category = category;
@@ -133,6 +157,7 @@ export async function getAllComplaints(req, res) {
             Complaint.find(filter)
                 .populate('assignedTo', 'name email')
                 .populate('assignedDepartmentId', 'name')
+                .populate('createdBy', 'name email')
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(parseInt(limit)),
@@ -183,6 +208,96 @@ export async function updateComplaintStatus(req, res) {
         return res.json({ complaint: c });
     } catch (err) {
         return res.status(500).json({ message: 'Failed to update complaint' });
+    }
+}
+
+export async function assignComplaintToStaff(req, res) {
+    try {
+        const { id } = req.params;
+        const { staffId } = req.body;
+
+        if (!staffId) {
+            return res.status(400).json({ message: 'staffId is required' });
+        }
+
+        if (!mongoose.isValidObjectId(id) || !mongoose.isValidObjectId(staffId)) {
+            return res.status(400).json({ message: 'Invalid id format' });
+        }
+
+
+        const staff = await User.findById(staffId);
+        if (!staff || staff.role !== 'staff') {
+            return res.status(404).json({ message: 'Staff member not found' });
+        }
+
+
+        const complaint = await Complaint.findById(id);
+        if (!complaint) {
+            return res.status(404).json({ message: 'Complaint not found' });
+        }
+
+        if (complaint.organizationId?.toString() !== req.user.organizationId?.toString()) {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
+        const previousAssignee = complaint.assignedTo;
+        complaint.assignedTo = staffId;
+
+
+        const previousStatus = complaint.status;
+        if (complaint.status === 'OPEN') {
+            complaint.status = 'IN_PROGRESS';
+        }
+
+
+        complaint.statusHistory.push({
+            from: previousStatus,
+            to: complaint.status,
+            note: `Assigned to ${staff.name} by admin`,
+            by: req.user?.id
+        });
+
+        await complaint.save();
+
+
+        await complaint.populate('assignedTo', 'name email');
+        await complaint.populate('assignedDepartmentId', 'name');
+
+        return res.json({ complaint, message: 'Complaint assigned successfully' });
+    } catch (err) {
+        console.error('assignComplaintToStaff error', err);
+        return res.status(500).json({ message: 'Failed to assign complaint' });
+    }
+}
+
+export async function getMyAssignments(req, res) {
+    try {
+        const { status, from, to } = req.query;
+
+        const orgId = req.user.organizationId ? new mongoose.Types.ObjectId(req.user.organizationId) : null;
+
+        let filter = {
+            assignedTo: req.user?.id,
+            organizationId: orgId
+        };
+
+        if (status) filter.status = status;
+        if (from || to) {
+            filter.createdAt = {};
+            if (from) filter.createdAt.$gte = new Date(from);
+            if (to) filter.createdAt.$lte = new Date(to);
+        }
+
+        const list = await Complaint.find(filter)
+            .populate('createdBy', 'name email')
+            .populate('assignedDepartmentId', 'name')
+            .sort({ createdAt: -1 })
+            .limit(50);
+
+        return res.json({ complaints: list });
+    } catch (err) {
+        console.error('getMyAssignments error', err);
+        return res.status(500).json({ message: 'Failed to fetch assignments' });
     }
 }
 

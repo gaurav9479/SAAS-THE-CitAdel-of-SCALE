@@ -150,16 +150,59 @@ async function run() {
     await Promise.all(staff.map(s => upsertUser({ email: s.email }, s)))
     console.log('Staff seeded')
 
-    // Seed admin and citizen test users (God mode org)
-    await upsertUser(
-        { email: 'admin@example.com' },
-        { name: 'Admin User', email: 'admin@example.com', password: 'ChangeMe123!', role: 'admin', organizationId: orgByName['Pro City Org']._id }
-    )
-    await upsertUser(
-        { email: 'citizen@example.com' },
-        { name: 'Citizen User', email: 'citizen@example.com', password: 'ChangeMe123!', role: 'citizen', organizationId: orgByName['Pro City Org']._id }
-    )
+    const citizens = await Promise.all([
+        upsertUser(
+            { email: 'admin@example.com' },
+            { name: 'Admin User', email: 'admin@example.com', password: 'ChangeMe123!', role: 'admin', organizationId: orgByName['Pro City Org']._id }
+        ),
+        upsertUser(
+            { email: 'admin@gmail.com' },
+            { name: 'Gaurav Admin', email: 'admin@gmail.com', password: 'ChangeMe123!', role: 'admin', organizationId: orgByName['Pro City Org']._id }
+        ),
+        upsertUser(
+            { email: 'citizen@example.com' },
+            { name: 'Citizen User', email: 'citizen@example.com', password: 'ChangeMe123!', role: 'citizen', organizationId: orgByName['Pro City Org']._id }
+        )
+    ])
     console.log('Admin and citizen seeded')
+
+    // Seed some complaints
+    const Complaint = (await import('../models/Complaint.js')).default
+    await Complaint.deleteMany({})
+    await Complaint.create([
+        {
+            title: 'Pothole on Main St',
+            description: 'Large pothole causing traffic delays',
+            category: 'Road Damage',
+            priority: 'HIGH',
+            status: 'OPEN',
+            createdBy: citizens[1]._id,
+            organizationId: orgByName['Pro City Org']._id,
+            assignedDepartmentId: byCode.ROAD_MAINT._id
+        },
+        {
+            title: 'Water Leakage in Sector 5',
+            description: 'Large pipe burst near the park',
+            category: 'Water Leakage',
+            priority: 'MEDIUM',
+            status: 'IN_PROGRESS',
+            createdBy: citizens[1]._id,
+            organizationId: orgByName['Pro City Org']._id,
+            assignedDepartmentId: byCode.WATER_SUP._id,
+            assignedTo: (await User.findOne({ email: 'wendy.water@example.com' }))._id
+        },
+        {
+            title: 'Garbage not collected',
+            description: 'Street bin is overflowing',
+            category: 'Garbage Not Collected',
+            priority: 'LOW',
+            status: 'OPEN',
+            createdBy: citizens[1]._id,
+            organizationId: orgByName['Pro City Org']._id,
+            assignedDepartmentId: byCode.WASTE._id
+        }
+    ])
+    console.log('Complaints seeded')
 
     await mongoose.disconnect()
     console.log('Done')

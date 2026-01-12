@@ -10,7 +10,9 @@ export async function listUsers(req, res) {
         if (role) filter.role = role;
         if (departmentId) filter.departmentId = departmentId;
         if (status) filter.status = status;
-        const users = await User.find(filter).select('_id name email role status departmentId staff ratings organizationId createdAt');
+        const users = await User.find(filter)
+            .select('_id name email role status departmentId staff ratings organizationId createdAt')
+            .populate('departmentId', '_id name code');
         return res.json({ users });
     } catch (e) {
         return res.status(500).json({ message: 'Failed to list users', details: e.message });
@@ -79,17 +81,15 @@ export async function getUserById(req, res) {
     try {
         const { id } = req.params;
 
-        // Check cache first
+
         const cached = await get(`user:${id}`);
         if (cached) {
             return res.status(200).json(JSON.parse(cached));
         }
 
-        // Fetch from DB otherwise
         const user = await User.findById(id).select('-password').populate('departmentId', 'name code');
         if (!user) return res.status(404).json({ message: 'User not found' });
 
-        // Cache for 15 minutes (900 seconds)
         await set(`user:${id}`, JSON.stringify({ user }), { EX: 900 });
 
         return res.json({ user });
@@ -100,8 +100,11 @@ export async function getUserById(req, res) {
 
 export async function updateProfile(req, res) {
     try {
-        const userId = req.user.id;
+        const userId = req.user?.id;
         const { name, phone, workArea, isWorkingToday, contactPhone, contactEmail, skills, title, shiftStart, shiftEnd, address, defaultLocation } = req.body;
+
+        console.log(`👤 Update Profile Request for User: ${userId}`);
+        console.log('📦 Data received:', JSON.stringify(req.body, null, 2));
 
         const updateData = {};
         if (name) updateData.name = name;
@@ -117,14 +120,25 @@ export async function updateProfile(req, res) {
         if (shiftStart) updateData['staff.shiftStart'] = shiftStart;
         if (shiftEnd) updateData['staff.shiftEnd'] = shiftEnd;
 
-        const user = await User.findByIdAndUpdate(userId, updateData, { new: true }).select('-password').populate('departmentId', 'name code');
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        const user = await User.findByIdAndUpdate(userId, updateData, { new: true })
+            .select('-password')
+            .populate('departmentId', 'name code');
 
-        // Invalidate cache for this user
-        await del(`user:${userId}`);
+        if (!user) {
+            console.warn(`⚠️ User not found for update: ${userId}`);
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        console.log(`✅ User profile updated successfully in DB: ${user._id}`);
+        console.log(`📡 Database name: ${mongoose.connection.name}`);
+
+        if (typeof del === 'function') {
+            await del(`user:${userId}`).catch(e => console.error('Redis delete error:', e.message));
+        }
 
         return res.json({ user, message: 'Profile updated successfully' });
     } catch (e) {
+        console.error('❌ Failed to update profile:', e);
         return res.status(500).json({ message: 'Failed to update profile', details: e.message });
     }
 }

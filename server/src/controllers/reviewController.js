@@ -11,13 +11,13 @@ export async function submitReview(req, res) {
       return res.status(400).json({ message: 'complaintId, staffId, and rating are required' });
     }
 
-    // Verify complaint exists and is resolved
+
     const complaint = await Complaint.findById(complaintId);
     if (!complaint) return res.status(404).json({ message: 'Complaint not found' });
     if (complaint.status !== 'RESOLVED') return res.status(400).json({ message: 'Can only review resolved complaints' });
     if (complaint.createdBy.toString() !== citizenId) return res.status(403).json({ message: 'Only complaint owner can review' });
 
-    // Check if review already exists
+
     const existing = await Review.findOne({ complaintId });
     if (existing) return res.status(409).json({ message: 'Review already submitted for this complaint' });
 
@@ -32,7 +32,7 @@ export async function submitReview(req, res) {
       communication,
     });
 
-    // Update staff average rating
+
     const allReviews = await Review.find({ staffId });
     const avg = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
     await User.findByIdAndUpdate(staffId, { 'ratings.average': avg, 'ratings.count': allReviews.length });

@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
 import MapPicker from "../components/MapPicker";
 import StaffSelector from "../components/StaffSelector";
 import PhoneInput from "react-phone-number-input";
 import { parsePhoneNumber } from "libphonenumber-js";
+import { useAuth } from "../auth/AuthContext";
 import "react-phone-number-input/style.css";
 
 const categories = [
@@ -33,6 +34,7 @@ const categories = [
 ];
 
 export default function NewComplaint() {
+  const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState(categories[0]);
@@ -42,9 +44,9 @@ export default function NewComplaint() {
   const [departments, setDepartments] = useState([]);
   const [selectedDeptId, setSelectedDeptId] = useState("");
   const [selectedStaffId, setSelectedStaffId] = useState("");
-  const [reporterPhone, setReporterPhone] = useState("");
-  const [reporterName, setReporterName] = useState("");
-  const [reporterEmail, setReporterEmail] = useState("");
+  const [reporterPhone, setReporterPhone] = useState(user?.profile?.phone || "");
+  const [reporterName, setReporterName] = useState(user?.name || "");
+  const [reporterEmail, setReporterEmail] = useState(user?.email || "");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -69,20 +71,24 @@ export default function NewComplaint() {
     })();
   }, []);
 
-  const matchingDepts = departments.filter((d) =>
-    d.categoriesHandled?.includes(category)
-  );
+  const matchingDepts = useMemo(() => {
+    return departments.filter((d) =>
+      d.categoriesHandled?.includes(category)
+    );
+  }, [departments, category]);
 
   useEffect(() => {
     if (matchingDepts.length === 1) {
       setSelectedDeptId(matchingDepts[0]._id);
-    } else if (
-      matchingDepts.length > 1 &&
-      !matchingDepts.find((d) => d._id === selectedDeptId)
-    ) {
+    } else if (matchingDepts.length === 0) {
       setSelectedDeptId("");
+    } else {
+      // If multiple, only clear if currently selected is not in matching
+      if (!matchingDepts.find((d) => d._id === selectedDeptId)) {
+        setSelectedDeptId("");
+      }
     }
-  }, [category, matchingDepts.length]);
+  }, [matchingDepts, selectedDeptId]);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -269,15 +275,25 @@ export default function NewComplaint() {
             lat={lat}
             lng={lng}
             category={category}
-            onStaffSelect={setSelectedStaffId}
+            onStaffSelect={(staffId, deptId) => {
+              setSelectedStaffId(staffId);
+              if (deptId) setSelectedDeptId(deptId);
+            }}
             selectedStaffId={selectedStaffId}
           />
         </div>
 
         <div className="bg-gray-50 rounded-lg p-4 space-y-4">
-          <h3 className="font-medium text-sm">
-            Your Contact Information (Optional)
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="font-medium text-sm">
+              Your Contact Information (Optional)
+            </h3>
+            {user?.organization && (
+              <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold uppercase">
+                {user.organization.name} ({user.organization.code})
+              </span>
+            )}
+          </div>
           <p className="text-xs text-fade">
             Provide your contact details so staff can reach you for updates or
             clarification.

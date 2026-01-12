@@ -7,7 +7,7 @@ import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import { sendEmail } from '../utils/email.js';
 
 function isValidINPhone(phone) {
-    if (!phone) return true; // optional overall, validate if provided
+    if (!phone) return true;
     const parsed = parsePhoneNumberFromString(phone, 'IN');
     return !!(parsed && parsed.isValid() && parsed.country === 'IN');
 }
@@ -44,7 +44,7 @@ export async function register(req, res) {
         }
         let org = null;
 
-        // Admin can create or pick org via code; other roles must provide an org code
+
         if (role === 'admin') {
             if (organizationId) {
                 org = await Organization.findById(organizationId);
@@ -55,7 +55,7 @@ export async function register(req, res) {
                 if (exists) return res.status(409).json({ message: 'Organization code already taken' });
                 org = await Organization.create({ name: organizationName || `${name}'s Org`, plan: 'free', code });
             } else {
-                // autogenerate unique code
+
                 let code;
                 do {
                     code = generateOrgCode(8);
@@ -106,15 +106,17 @@ export async function register(req, res) {
             }
         }
 
-        // Email OTP
+
         const otp = genOtp();
         const otpExpires = new Date(Date.now() + 15 * 60 * 1000);
         payload.emailOtp = otp;
         payload.emailOtpExpires = otpExpires;
         payload.emailVerified = false;
 
-        await User.create(payload);
-        // Send OTP email (or log in dev)
+        const newUser = await User.create(payload);
+        console.log(`✅ User registered successfully: ${newUser.email} (ID: ${newUser._id})`);
+
+
         try {
             await sendEmail({
                 to: email,
@@ -153,7 +155,7 @@ export async function login(req, res) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
         if (!user.emailVerified) {
-            // allow inline verify on login
+
             if (code && user.emailOtp === code && user.emailOtpExpires && user.emailOtpExpires > new Date()) {
                 user.emailVerified = true;
                 user.emailOtp = undefined;
@@ -187,7 +189,7 @@ export async function login(req, res) {
 
 export async function me(req, res) {
     try {
-        // req.user is set by requireAuth
+
         const userId = req.user?.id;
         if (!userId) return res.status(401).json({ message: 'Unauthorized' });
         const user = await User.findById(userId).select('_id name email role organizationId profile');

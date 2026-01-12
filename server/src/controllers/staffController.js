@@ -3,9 +3,9 @@ import Department from '../models/Department.js';
 import { get, set, del, keys } from '../utils/redis.js';
 import Complaint from '../models/Complaint.js';
 
-// Haversine formula to calculate distance between two coordinates
+
 function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371; // Earth's radius in kilometers
+    const R = 6371; 
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a =
@@ -13,7 +13,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
         Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
         Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c; // Distance in kilometers
+    return R * c; 
 }
 
 export async function getNearbyStaff(req, res) {
@@ -24,31 +24,33 @@ export async function getNearbyStaff(req, res) {
             return res.status(400).json({ message: 'Latitude and longitude are required' });
         }
 
-        // Create cache key based on request parameters
         const cacheKey = `staff:nearby:${lat}:${lng}:${category}:${radius}`;
 
-        // Check cache first (5 minutes for staff availability)
+
         const cached = await get(cacheKey);
         if (cached) {
             return res.status(200).json(JSON.parse(cached));
         }
 
-        // Find department that handles this category
-        const department = await Department.findOne({ categoriesHandled: category }).lean();
-        if (!department) {
+
+        const departments = await Department.find({ categoriesHandled: category }).select('_id name').lean();
+        if (!departments || departments.length === 0) {
             return res.status(404).json({ message: 'No department handles this category' });
         }
 
-        // Get all staff from the relevant department who are working today
+        const deptIds = departments.map(d => d._id);
+
+
         const staff = await User.find({
             role: 'staff',
-            departmentId: department._id,
+            organizationId: req.user.organizationId,
+            departmentId: { $in: deptIds },
             'staff.isWorkingToday': true,
             'staff.workArea.location.lat': { $exists: true },
             'staff.workArea.location.lng': { $exists: true }
         }).select('name email staff ratings departmentId').lean();
 
-        // Calculate distances and filter by radius
+
         const nearbyStaff = staff
             .map(staffMember => {
                 const distance = calculateDistance(
@@ -74,7 +76,7 @@ export async function getNearbyStaff(req, res) {
 
         const result = {
             staff: nearbyStaff,
-            department: department.name,
+            departments: departments.map(d => d.name),
             totalFound: nearbyStaff.length,
             searchRadius: parseFloat(radius)
         };
@@ -125,7 +127,7 @@ export async function assignStaffToComplaint(req, res) {
                 await del(key);
             }
         } catch (err) {
-            // Cache invalidation failed, but that's okay - cache will expire naturally
+
             console.warn('Cache invalidation skipped:', err.message);
         }
 

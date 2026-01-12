@@ -3,8 +3,8 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import mongoose from 'mongoose';
-import complaintRoutes from './routes/complaintRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import complaintRoutes from './routes/complaintRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import departmentRoutes from './routes/departmentRoutes.js';
 import userRoutes from './routes/userRoutes.js';
@@ -56,10 +56,10 @@ const allowedOrigins = new Set([
 // });
 
 app.use(cors({
-  origin(origin,cb){
-    if(!origin||allowedOrigins.has(origin)){
-      cb(null,true);
-    }else{
+  origin(origin, cb) {
+    if (!origin || allowedOrigins.has(origin)) {
+      cb(null, true);
+    } else {
       cb(new Error('CORS blocked'))
     }
   },
@@ -73,17 +73,29 @@ app.use(morgan('dev'));
 
 const mongoUri = process.env.MONGO_URI;
 if (!mongoUri) {
+  console.error('❌ MONGO_URI is missing in environment variables');
   process.exit(1);
 }
 
+// Masked URI for logging
+const maskedUri = mongoUri.replace(/\/\/.*@/, '//****:****@');
+console.log(`📡 Attempting to connect to MongoDB: ${maskedUri}`);
+
+mongoose.connect(mongoUri)
+  .then(() => {
+    const { host, name } = mongoose.connection;
+    console.log(`✅ MongoDB connected successfully to host: ${host}, database: ${name}`);
 
 
-mongoose.connect(mongoUri).then(() => {
-  console.log('✅ MongoDB connected successfully');
-}).catch(err => {
-  console.error('❌ MongoDB connection error:', err.message);
-  process.exit(1);
-});
+    const port = process.env.PORT || 5050;
+    app.listen(port, () => {
+      console.log(`🚀 API listening on port :${port}`);
+    });
+  })
+  .catch(err => {
+    console.error('❌ MongoDB connection error:', err.message);
+    process.exit(1);
+  });
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
@@ -98,7 +110,7 @@ app.use('/api/staff', staffRoutes);
 app.use('/api/orgs', orgRoutes);
 app.use('/api/otp', otpRoutes);
 
-const port = process.env.PORT || 5000;
-app.listen(port, () => {
-  console.log(`🚀 API listening on :${port}`);
-});
+// const port = process.env.PORT || 5000;
+// app.listen(port, () => {
+//   console.log(`🚀 API listening on :${port}`);
+// });
