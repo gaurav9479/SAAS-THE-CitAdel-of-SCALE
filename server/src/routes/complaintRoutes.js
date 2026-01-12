@@ -4,7 +4,7 @@ import { createComplaint, getMyComplaints, getComplaintsByStaff, getAllComplaint
 
 const router = Router();
 
-// List complaints - admin/staff can see all with filters, citizens see only their own
+
 router.get('/', requireAuth, (req, res, next) => {
     if (req.user.role === 'citizen') {
         return getMyComplaints(req, res);
@@ -12,12 +12,12 @@ router.get('/', requireAuth, (req, res, next) => {
         return getAllComplaints(req, res);
     }
 });
-router.get('/mine', requireAuth, getMyComplaints);
+router.get('/mine', requireAuth,requireRole('citizen'), getMyComplaints);
 router.get('/staff/:staffId', requireAuth, getComplaintsByStaff);
 router.get('/:id', requireAuth, getComplaintDetail);
 router.patch('/:id/status', requireAuth, requireRole('staff', 'admin'), updateComplaintStatus);
 
-// Create complaint
+
 router.post('/', requireAuth, createComplaint);
 
 export default router;

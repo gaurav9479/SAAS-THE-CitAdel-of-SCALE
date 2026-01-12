@@ -63,7 +63,7 @@ export async function register(req, res) {
                 org = await Organization.create({ name: organizationName || `${name}'s Org`, plan: 'free', code });
             }
         } else {
-            // non-admin: must provide code or existing org id; fallback to default individual org if configured
+
             if (organizationCode) {
                 org = await Organization.findOne({ code: organizationCode.trim().toUpperCase() });
                 if (!org) return res.status(400).json({ message: 'Invalid organization code' });
@@ -71,7 +71,7 @@ export async function register(req, res) {
                 org = await Organization.findById(organizationId);
                 if (!org) return res.status(400).json({ message: 'Organization not found' });
             } else {
-                // fallback: join default individual org (code: INDIVIDUAL) if it exists
+
                 org = await Organization.findOne({ code: 'INDIVIDUAL' }) || await Organization.findOne();
                 if (!org) return res.status(400).json({ message: 'Organization code required' });
             }
@@ -87,7 +87,7 @@ export async function register(req, res) {
         }
         if (departmentId) payload.departmentId = departmentId;
         if (staff) {
-            // If registering staff, require workArea.location coordinates
+
             if (role === 'staff') {
                 const hasCoords = staff?.workArea?.location?.lat !== undefined && staff?.workArea?.location?.lng !== undefined;
                 if (!hasCoords) {
@@ -96,7 +96,7 @@ export async function register(req, res) {
             }
             payload.staff = staff;
         }
-        // Enforce seat limits for staff/citizen
+
         if (role === 'staff' || role === 'citizen') {
             const isStaff = role === 'staff';
             const cap = isStaff ? limits.maxStaff : limits.maxCitizens;

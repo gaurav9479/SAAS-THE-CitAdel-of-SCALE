@@ -65,7 +65,7 @@ export async function getNearbyStaff(req, res) {
             })
             .filter(staffMember => staffMember.distance <= parseFloat(radius))
             .sort((a, b) => {
-                // Sort by rating (descending) then by distance (ascending)
+
                 if (b.ratings.average !== a.ratings.average) {
                     return b.ratings.average - a.ratings.average;
                 }
@@ -79,7 +79,7 @@ export async function getNearbyStaff(req, res) {
             searchRadius: parseFloat(radius)
         };
 
-        // Cache for 5 minutes (300 seconds)
+
         await set(cacheKey, JSON.stringify(result), { EX: 300 });
 
         return res.json(result);
@@ -97,7 +97,7 @@ export async function assignStaffToComplaint(req, res) {
             return res.status(400).json({ message: 'complaintId and staffId are required' });
         }
 
-        // Update complaint with assigned staff
+
         const complaint = await Complaint.findByIdAndUpdate(
             complaintId,
             {
@@ -119,9 +119,6 @@ export async function assignStaffToComplaint(req, res) {
             return res.status(404).json({ message: 'Complaint not found' });
         }
 
-        // Invalidate staff nearby cache for this staff member (since they're now assigned)
-        // This ensures the next nearby search reflects the updated availability
-        // Note: Cache will expire naturally if Redis is not available
         try {
             const cacheKeys = await keys('staff:nearby:*');
             for (const key of cacheKeys) {

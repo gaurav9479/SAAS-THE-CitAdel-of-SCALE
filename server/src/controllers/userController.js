@@ -39,7 +39,7 @@ export async function approveUser(req, res) {
         const user = await User.findOne({ _id: id, organizationId: req.user.organizationId });
         if (!user) return res.status(404).json({ message: 'User not found' });
 
-        // Enforce seat limits on approval
+
         const org = await Organization.findById(req.user.organizationId);
         const limits = getPlanLimits(org?.plan || 'free');
         if (user.role === 'staff' && limits.maxStaff) {

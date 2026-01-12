@@ -19,13 +19,13 @@ export async function createComplaint(req, res) {
             return res.status(400).json({ message: 'title, description and category are required' });
         }
 
-        // Load user + org to enforce plan limits
+
         const user = await User.findById(req.user?.id).select('organizationId');
         const org = user?.organizationId ? await Organization.findById(user.organizationId) : await Organization.findOne();
         const orgPlan = org?.plan || 'free';
         const features = getPlanFeatures(orgPlan);
 
-        // Enforce daily complaint cap for Free (and any capped plan)
+
         if (Number.isFinite(features.maxComplaintsPerDay)) {
             const todayStart = new Date();
             todayStart.setHours(0, 0, 0, 0);
@@ -40,7 +40,7 @@ export async function createComplaint(req, res) {
             }
         }
 
-        // Use user-selected department if provided, otherwise auto-find by category
+
         let deptId = assignedDepartmentId;
         let slaHours = features.slaHours || 72;
         
@@ -80,7 +80,10 @@ export async function createComplaint(req, res) {
 
 export async function getMyComplaints(req, res) {
     try {
-        const list = await Complaint.find({ createdBy: req.user?.id }).sort({ createdAt: -1 }).limit(50);
+        const list = await Complaint.find({
+            createdBy: req.user?.id,
+            organizationId:req.user.organizationId
+        }).sort({ createdAt: -1 }).limit(50);
         return res.json({ complaints: list });
     } catch (err) {
         return res.status(500).json({ message: 'Failed to fetch complaints' });
@@ -92,7 +95,9 @@ export async function getComplaintsByStaff(req, res) {
         const { staffId } = req.params;
         const { status, from, to } = req.query;
 
-        let filter = { assignedTo: staffId };
+        let filter = { assignedTo: staffId,
+            organizationId:req.user.organizationId
+        };
         if (status) filter.status = status;
         if (from || to) {
             filter.createdAt = {};
@@ -111,8 +116,9 @@ export async function getAllComplaints(req, res) {
     try {
         const { status, departmentId, assignedTo, from, to, category, page = 1, limit = 20 } = req.query;
 
-        let filter = {};
+        let filter = {organizationId:req.user.organizationId};
         if (status) filter.status = status;
+        
         if (departmentId) filter.assignedDepartmentId = departmentId;
         if (assignedTo) filter.assignedTo = assignedTo;
         if (category) filter.category = category;
@@ -153,7 +159,7 @@ export async function getComplaintDetail(req, res) {
             .populate('assignedDepartmentId', 'name')
             .lean();
         if (!c) return res.status(404).json({ message: 'Not found' });
-        // Optionally restrict citizens to their own complaint
+
         if (req.user?.role === 'citizen' && c.createdBy?.toString() !== req.user.id) {
             return res.status(404).json({ message: 'Not found' });
         }
