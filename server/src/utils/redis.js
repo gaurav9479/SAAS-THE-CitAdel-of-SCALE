@@ -1,11 +1,11 @@
-// src/utils/redis.js
+
 import { createClient } from "redis";
 
 let client = null;
 let isConnected = false;
 let connectionAttempted = false;
 
-// Only create Redis client if REDIS_URL is provided and not pointing to localhost in production
+
 const redisUrl = process.env.REDIS_URL;
 const isLocalhost = redisUrl && (redisUrl.includes('127.0.0.1') || redisUrl.includes('localhost'));
 
@@ -14,12 +14,12 @@ if (redisUrl && !isLocalhost) {
         client = createClient({
             url: redisUrl,
             socket: {
-                reconnectStrategy: false // Disable auto-reconnect to prevent connection spam
+                reconnectStrategy: false 
             }
         });
 
         client.on("error", err => {
-            // Only log error once to avoid spam
+
             if (!connectionAttempted) {
                 console.warn("Redis Client Error:", err.message);
                 console.warn("Redis caching will be disabled. App will function normally without Redis.");
@@ -49,12 +49,11 @@ if (redisUrl && !isLocalhost) {
             console.warn("App will function normally without Redis caching.");
             isConnected = false;
             connectionAttempted = true;
-            // Don't set client to null here - keep it but mark as disconnected
-            // This prevents reconnection attempts
+
             try {
-                client.quit().catch(() => {}); // Gracefully close if possible
+                client.quit().catch(() => {}); 
             } catch (e) {
-                // Ignore quit errors
+
             }
         });
     } catch (err) {
@@ -119,5 +118,5 @@ export function isRedisAvailable() {
     return client !== null && isConnected;
 }
 
-// Export client for advanced usage (with null check)
+
 export default client;

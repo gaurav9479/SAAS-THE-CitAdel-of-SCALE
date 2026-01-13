@@ -15,7 +15,7 @@ const PLAN_FEATURES = {
         sla: true,
         automation: true,
         analytics: true,
-        priorityRouting: false, // saved for titan
+        priorityRouting: false, 
         defaultPriority: 'MEDIUM',
         slaHours: 48,
     },

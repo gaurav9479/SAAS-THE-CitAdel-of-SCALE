@@ -3,7 +3,7 @@ import User from '../models/User.js';
 
 const router = Router();
 
-// Verify email OTP (signup flow)
+
 router.post('/verify-email', async (req, res) => {
     try {
         const { email, code } = req.body;

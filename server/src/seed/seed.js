@@ -98,7 +98,7 @@ async function run() {
 
     const byCode = Object.fromEntries(createdDepts.map(d => [d.code, d]))
 
-    // Seed staff with coordinates so registration flow mirrors production requirements
+
     const staff = [
         {
             name: 'Rohan Roads',

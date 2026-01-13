@@ -4,7 +4,7 @@ import { listUsers, getUserById, updateProfile, orgSummary, approveUser, rejectU
 
 const router = Router();
 
-// Admin and staff can list users; citizens cannot
+
 router.get('/', requireAuth, requireRole('admin', 'staff'), listUsers);
 router.get('/org/summary', requireAuth, requireRole('admin'), orgSummary);
 router.patch('/:id/approve', requireAuth, requireRole('admin'), approveUser);

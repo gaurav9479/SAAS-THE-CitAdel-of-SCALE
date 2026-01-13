@@ -5,7 +5,7 @@ const transporter = hasCreds
   ? nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587,
-      secure: process.env.SMTP_SECURE === 'true', // true for 465, false for 587/STARTTLS
+      secure: process.env.SMTP_SECURE === 'true', 
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,

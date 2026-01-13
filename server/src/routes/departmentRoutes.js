@@ -4,19 +4,19 @@ import { get, set } from '../utils/redis.js';
 
 const router = Router();
 
-// Public endpoint for registration and complaint forms
+
 router.get('/', async (_req, res) => {
     try {
-        // Check cache first
+
         const cached = await get('departments:list');
         if (cached) {
             return res.status(200).json(JSON.parse(cached));
         }
 
-        // Fetch from DB otherwise
+
         const items = await Department.find({}).select('_id name code categoriesHandled');
 
-        // Cache for 1 hour (3600 seconds)
+
         await set('departments:list', JSON.stringify({ departments: items }), { EX: 3600 });
 
         return res.json({ departments: items });

@@ -4,10 +4,10 @@ import { getNearbyStaff, assignStaffToComplaint } from '../controllers/staffCont
 
 const router = Router();
 
-// Get nearby staff for a location and category
+
 router.get('/nearby', requireAuth, getNearbyStaff);
 
-// Assign staff to complaint
+
 router.post('/assign', requireAuth, assignStaffToComplaint);
 
 export default router;
