@@ -1,6 +1,10 @@
 import { Redis } from "@upstash/redis";
 
-const isConfigured = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+const isConfigured = !!(
+  process.env.UPSTASH_REDIS_REST_URL && 
+  process.env.UPSTASH_REDIS_REST_TOKEN &&
+  !process.env.UPSTASH_REDIS_REST_URL.includes("your-upstash-url")
+);
 
 export let redis = null;
 
