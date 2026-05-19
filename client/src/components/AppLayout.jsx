@@ -1,19 +1,23 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import PlanBadge from './PlanBadge'
+import api from '../api/axios'
 
 export default function AppLayout() {
   const { user, logout } = useAuth()
   const role = user?.role
 
+  const isDemo = user?.organization?.code === 'DEMO123' || user?.email?.endsWith('@demo.citadel')
+
   const nav = [
     { to: '/', label: 'Dashboard', roles: ['admin','staff','citizen'] },
     { to: '/profile/edit', label: 'Profile', roles: ['admin','staff','citizen'] },
+    isDemo ? { to: '/demo', label: 'Demo Portal 🔄', roles: ['admin','staff','citizen'] } : null,
     { to: '/people', label: 'People', roles: ['admin'] },
     { to: '/billing', label: 'Billing', roles: ['admin'] },
     { to: '/departments', label: 'Departments', roles: ['admin','staff'] },
     { to: '/complaints/new', label: 'New Complaint', roles: ['citizen','admin','staff'] },
-  ].filter(item => item.roles.includes(role))
+  ].filter(item => item && item.roles.includes(role))
 
   const handleExitDemo = async () => {
     try {
@@ -24,8 +28,6 @@ export default function AppLayout() {
       logout()
     }
   }
-
-  const isDemo = user?.organization?.code === 'DEMO123' || user?.email?.endsWith('@demo.citadel')
 
   return (
     <div className="h-screen w-screen flex bg-gray-50 overflow-hidden">
