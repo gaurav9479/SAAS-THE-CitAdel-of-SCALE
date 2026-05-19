@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import api from "../api/axios.js";
 import KpiCard from "../components/KpiCard";
 import ProfileCard from "../components/ProfileCard";
+import SlaTimer from "../components/SlaTimer";
 
 function AssignmentModal({ complaint, staff, departments, onClose, onAssign }) {
   const [selectedStaff, setSelectedStaff] = useState(complaint?.assignedTo?._id || '');
@@ -303,6 +304,7 @@ export default function AdminDashboard() {
                   <th className="py-3 px-2">Title</th>
                   <th className="py-3 px-2">Category</th>
                   <th className="py-3 px-2">Priority</th>
+                  <th className="py-3 px-2">SLA Countdown</th>
                   <th className="py-3 px-2">Status</th>
                   <th className="py-3 px-2">Assigned To</th>
                   <th className="py-3 px-2">Department</th>
@@ -321,6 +323,9 @@ export default function AdminDashboard() {
                       <span className={`px-2 py-1 rounded text-xs font-medium ${priorityColors[c.priority] || 'bg-gray-100'}`}>
                         {c.priority}
                       </span>
+                    </td>
+                    <td className="py-3 px-2">
+                      <SlaTimer createdAt={c.createdAt} priority={c.priority} status={c.status} />
                     </td>
                     <td className="py-3 px-2">
                       <span className={`px-2 py-1 rounded text-xs ${
