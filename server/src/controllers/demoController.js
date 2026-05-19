@@ -136,6 +136,7 @@ export async function loginDemoUser(req, res) {
       id: targetUser._id,
       role: targetUser.role,
       name: targetUser.name,
+      email: targetUser.email,
       organizationId: org._id,
       plan: org.plan
     });

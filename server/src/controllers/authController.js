@@ -168,7 +168,14 @@ export async function login(req, res) {
         const org = user.organizationId ? await Organization.findById(user.organizationId) : await Organization.findOne();
         const orgPlan = org?.plan || 'free';
         const orgFeatures = getPlanFeatures(orgPlan);
-        const token = signToken({ id: user._id, role: user.role, name: user.name, organizationId: org?._id, plan: orgPlan });
+        const token = signToken({
+          id: user._id,
+          role: user.role,
+          name: user.name,
+          email: user.email,
+          organizationId: org?._id,
+          plan: orgPlan
+        });
         return res.json({
             token,
             user: {
