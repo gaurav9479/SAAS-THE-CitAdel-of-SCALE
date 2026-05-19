@@ -12,6 +12,7 @@ import reviewRoutes from './routes/reviewRoutes.js';
 import staffRoutes from './routes/staffRoutes.js';
 import orgRoutes from './routes/orgRoutes.js';
 import otpRoutes from './routes/otpRoutes.js';
+import demoRoutes from './routes/demoRoutes.js';
 
 const app = express();
 
@@ -109,6 +110,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/orgs', orgRoutes);
 app.use('/api/otp', otpRoutes);
+app.use('/api/demo', demoRoutes);
 
 // const port = process.env.PORT || 5000;
 // app.listen(port, () => {
