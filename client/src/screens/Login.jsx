@@ -60,6 +60,7 @@ export default function Login() {
         )}
         <button disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-medium disabled:opacity-50 transition">{loading? 'Signing in...' : 'Sign in'}</button>
         <p className="text-white/80 text-sm">No account? <Link to="/register" className="underline">Register</Link></p>
+        <p className="text-white/80 text-sm mt-2">Just browsing? <Link to="/demo" className="underline text-emerald-300 font-medium">Try the Recruiter Demo</Link></p>
       </form>
     </AuthLayout>
   )

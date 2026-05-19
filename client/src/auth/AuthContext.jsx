@@ -126,6 +126,24 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("user");
   };
 
+  const demoLogin = async (role, payload = {}) => {
+    setLoading(true);
+    try {
+      const { data } = await api.post(`/api/demo/${role}`, payload);
+      if (data.user && data.token) {
+        setUser(data.user);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        setToken(data.token);
+        return { ok: true };
+      }
+      return { ok: false, message: "Demo login failed" };
+    } catch (e) {
+      return { ok: false, message: e.response?.data?.message || e.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const value = useMemo(
     () => ({
       user,
@@ -135,6 +153,7 @@ export function AuthProvider({ children }) {
       register,
       verifyEmail,
       logout,
+      demoLogin,
       bootstrapping,
       setUser,
     }),

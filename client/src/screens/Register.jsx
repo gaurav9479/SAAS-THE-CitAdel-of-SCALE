@@ -672,6 +672,12 @@ export default function Register() {
             Sign in
           </Link>
         </p>
+        <p className="text-white/80 text-sm mt-2">
+          Just browsing?{" "}
+          <Link to="/demo" className="underline text-emerald-300 font-medium">
+            Try the Recruiter Demo
+          </Link>
+        </p>
       </form>
     </AuthLayout>
   );
