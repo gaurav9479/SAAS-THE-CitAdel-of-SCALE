@@ -41,14 +41,42 @@ export async function getNearbyStaff(req, res) {
         const deptIds = departments.map(d => d._id);
 
 
-        const staff = await User.find({
-            role: 'staff',
-            organizationId: req.user.organizationId,
-            departmentId: { $in: deptIds },
-            'staff.isWorkingToday': true,
-            'staff.workArea.location.lat': { $exists: true },
-            'staff.workArea.location.lng': { $exists: true }
-        }).select('name email staff ratings departmentId').lean();
+        let staff;
+        const isDemo = req.user?.email?.endsWith('@demo.citadel');
+
+        if (isDemo) {
+            staff = await User.find({
+                role: 'staff',
+                organizationId: req.user.organizationId,
+                departmentId: { $in: deptIds }
+            }).select('name email staff ratings departmentId').lean();
+
+            staff = staff.map((member, i) => {
+                const projectedLat = parseFloat(lat) + (0.002 * (i + 1));
+                const projectedLng = parseFloat(lng) + (0.002 * (i + 1));
+                return {
+                    ...member,
+                    staff: {
+                        ...member.staff,
+                        isWorkingToday: true,
+                        workArea: {
+                            ...member.staff?.workArea,
+                            city: 'Demo City',
+                            location: { lat: projectedLat, lng: projectedLng }
+                        }
+                    }
+                };
+            });
+        } else {
+            staff = await User.find({
+                role: 'staff',
+                organizationId: req.user.organizationId,
+                departmentId: { $in: deptIds },
+                'staff.isWorkingToday': true,
+                'staff.workArea.location.lat': { $exists: true },
+                'staff.workArea.location.lng': { $exists: true }
+            }).select('name email staff ratings departmentId').lean();
+        }
 
 
         const nearbyStaff = staff
