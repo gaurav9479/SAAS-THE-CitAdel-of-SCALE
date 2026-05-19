@@ -100,7 +100,7 @@ async function setupDemoEnvironment() {
 export async function loginDemoUser(req, res) {
   try {
     const { role } = req.params;
-    const { departmentId } = req.body;
+    const { departmentId } = req.body || {};
     
     const internalRole = role === 'employee' ? 'citizen' : role;
     const org = await setupDemoEnvironment();
@@ -132,7 +132,13 @@ export async function loginDemoUser(req, res) {
       return res.status(404).json({ message: 'Demo user not provisioned' });
     }
 
-    const token = signToken(targetUser);
+    const token = signToken({
+      id: targetUser._id,
+      role: targetUser.role,
+      name: targetUser.name,
+      organizationId: org._id,
+      plan: org.plan
+    });
 
     res.json({
       token,
