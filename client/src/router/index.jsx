@@ -17,6 +17,7 @@ import PlanBadge from '../components/PlanBadge'
 import Billing from '../screens/Billing'
 import People from '../screens/People'
 import AppLayout from '../components/AppLayout'
+import Demo from '../screens/Demo'
 
 function RoleDashboard() {
   const { user } = useAuth()
@@ -44,6 +45,7 @@ function RoleDashboard() {
 const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/register', element: <Register /> },
+  { path: '/demo', element: <Demo /> },
   {
     path: '/',
     element: (
