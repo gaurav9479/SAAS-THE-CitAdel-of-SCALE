@@ -5,9 +5,9 @@ import api from "../api/axios";
 const PLANS = [
   {
     id: "free",
-    name: "Free",
+    name: "Gold Plan",
     price: "$0",
-    highlight: "Basic usability with deliberate friction.",
+    highlight: "Basic usability with Gold features.",
     features: [
       "Max 2 complaints/day per resident",
       "Manual assignment only",
@@ -18,9 +18,9 @@ const PLANS = [
   },
   {
     id: "god",
-    name: "God Mode (Pro)",
+    name: "Platinum Plan",
     price: "$— (prototype)",
-    highlight: "Operational powerhouse for teams who need throughput.",
+    highlight: "Operational powerhouse with high throughput.",
     features: [
       "Unlimited complaints",
       "Auto-assignment + smart filters",
@@ -31,11 +31,11 @@ const PLANS = [
   },
   {
     id: "titan",
-    name: "Titan Mode",
+    name: "Titanium Plan",
     price: "$— (prototype)",
-    highlight: "Priority handling, advanced automation, enterprise-like power.",
+    highlight: "Priority handling, advanced automation, enterprise-grade SLA.",
     features: [
-      "Priority queues & faster SLA",
+      "Priority queues & faster 24h SLA",
       "Auto-escalation on breach",
       "AI triage / load balancing",
       "Advanced analytics",

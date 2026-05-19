@@ -15,6 +15,18 @@ export default function AppLayout() {
     { to: '/complaints/new', label: 'New Complaint', roles: ['citizen','admin','staff'] },
   ].filter(item => item.roles.includes(role))
 
+  const handleExitDemo = async () => {
+    try {
+      await api.post('/api/demo/exit')
+    } catch (e) {
+      console.warn("Exit demo clean up failed:", e.message)
+    } finally {
+      logout()
+    }
+  }
+
+  const isDemo = user?.organization?.code === 'DEMO123' || user?.email?.endsWith('@demo.citadel')
+
   return (
     <div className="h-screen w-screen flex bg-gray-50 overflow-hidden">
       <aside className="w-64 shrink-0 bg-white border-r border-gray-200 hidden md:flex flex-col h-full">
@@ -44,9 +56,15 @@ export default function AppLayout() {
           ))}
         </nav>
         <div className="p-2 border-t border-gray-200">
-          <button onClick={logout} className="w-full px-3 py-2 rounded-md bg-red-50 text-red-700 text-sm font-medium hover:bg-red-100">
-            Logout
-          </button>
+          {isDemo ? (
+            <button onClick={handleExitDemo} className="w-full px-3 py-2 rounded-md bg-purple-50 text-purple-700 text-sm font-medium hover:bg-purple-100 transition duration-150">
+              Exit Demo 🚪
+            </button>
+          ) : (
+            <button onClick={logout} className="w-full px-3 py-2 rounded-md bg-red-50 text-red-700 text-sm font-medium hover:bg-red-100">
+              Logout
+            </button>
+          )}
         </div>
       </aside>
       <div className="flex-1 h-full flex flex-col overflow-hidden min-w-0">
