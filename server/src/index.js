@@ -13,6 +13,7 @@ import staffRoutes from './routes/staffRoutes.js';
 import orgRoutes from './routes/orgRoutes.js';
 import otpRoutes from './routes/otpRoutes.js';
 import demoRoutes from './routes/demoRoutes.js';
+import cron from 'node-cron';
 
 const app = express();
 
@@ -91,6 +92,18 @@ mongoose.connect(mongoUri)
     const port = process.env.PORT || 5050;
     app.listen(port, () => {
       console.log(`🚀 API listening on port :${port}`);
+    });
+
+    // Keep-alive cron job to prevent MongoDB from pausing (runs every 14 minutes)
+    cron.schedule('*/14 * * * *', async () => {
+      try {
+        if (mongoose.connection.readyState === 1) {
+          await mongoose.connection.db.admin().ping();
+          console.log('💓 Pinged MongoDB to keep cluster active.');
+        }
+      } catch (err) {
+        console.error('⚠️ Failed to ping MongoDB:', err.message);
+      }
     });
   })
   .catch(err => {
